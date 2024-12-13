@@ -6,7 +6,7 @@
 		<style>
 
 			html, body {
-				background-color: "gray";
+				background-color: gray;
 				margin: 0;
 				padding: 0;
 			}
@@ -31,32 +31,31 @@
 			.line.open {
 				stroke: #ff5733;
 			}
+
+			svg {
+				background-color: black;
+			}
 		</style>
 	</head>
 
-	<body style="background-color:gray;">
+	<body>
 		<h1> Nvidia Stock Price Over Time</h1>
-		<p> Test 10</p>
+		<p> Test 11</p>
 		<svg id="chart1" width="800" height="400"></svg>
 		<svg id="chart2" width="800" height="400"></svg>
 		<script type="text/javascript">
 			var dataset;
 			d3.csv("NVDA.csv", function(data) {
 				data.forEach(function (d) {
-               				d.Date = d3.time.format("%Y-%m-%d").parse(d.Date); 
-                			d.Close = +d.Close;
-            			});
+					d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
+					d.Close = +d.Close;
+				});
 				
 				data = data.filter(function (d) {
-  					return d.Date && d.Close && !isNaN(+d.Close);
+					return d.Date && d.Close && !isNaN(+d.Close);
 				});
 
-				console.log(data);
-
-
 				createStockChart(data);
-
-
 				createStockComparisonChart(data);
 			});
 
@@ -67,28 +66,20 @@
 				var margin = { top: 20, right: 30, bottom: 30, left: 40 };
 				var innerWidth = width - margin.left - margin.right;
 				var innerHeight = height - margin.top - margin.bottom;
-				
+
 				var xScale = d3.time.scale()
-  					.domain(d3.extent(dataset, function (d) { return d.Date; }))
-  					.range([0, innerWidth]);
+					.domain(d3.extent(dataset, function (d) { return d.Date; }))
+					.range([0, innerWidth]);
 
 				var yScale = d3.scale.linear()
-					.domain([
-    					d3.min(dataset, function (d) { return d.Close; }),
-    					d3.max(dataset, function (d) { return d.Close; })
-  					])
-  					.range([innerHeight, 0]); 	
+					.domain([d3.min(dataset, function (d) { return d.Close; }), d3.max(dataset, function (d) { return d.Close; })])
+					.range([innerHeight, 0]);
 
-				var xAxis = d3.svg.axis()
-					.scale(xScale)
-					.orient("bottom");
-
-				var yAxis = d3.svg.axis()
-					.scale(yScale)
-					.orient("left");
+				var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+				var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
 				var g = svg.append("g")
-					.attr("transform", `translate(${margin.left}, ${margin.top})`);
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 				g.append("g")
 					.attr("class", "y axis")
@@ -96,12 +87,12 @@
 
 				g.append("g")
 					.attr("class", "x axis")
-					.attr("transform", `translate(0, ${innerHeight})`)
+					.attr("transform", "translate(0," + innerHeight + ")")
 					.call(xAxis);
 
 				var line = d3.svg.line()
-					.x(function (d) {return xScale(d.Date); })
-					.y(function (d) {return yScale(d.Close); });
+					.x(function (d) { return xScale(d.Date); })
+					.y(function (d) { return yScale(d.Close); });
 
 				g.append("path")
 					.datum(dataset)
@@ -110,7 +101,7 @@
 			}
 
 			function createStockComparisonChart(dataset) {
-				var svg = d3.select("#chart2");)
+				var svg = d3.select("#chart2");
 				var width = +svg.attr("width");
 				var height = +svg.attr("height");
 				var margin = { top: 20, right: 30, bottom: 30, left: 40 };
@@ -118,54 +109,49 @@
 				var innerHeight = height - margin.top - margin.bottom;
 
 				var xScale = d3.time.scale()
-          				.domain(d3.extent(dataset, function(d) { return d.Date; }))
-          				.range([0, innerWidth]);
+					.domain(d3.extent(dataset, function (d) { return d.Date; }))
+					.range([0, innerWidth]);
 
 				var yScale = d3.scale.log()
 					.domain([
-						d3.min(dataset, function(d) {return Math.min(d.Close, d.Open); }),
-						d3.max(dataset, function(d) {return Math.max(d.Close, d.Open); }),
+						d3.min(dataset, function (d) { return Math.min(d.Close, d.Open); }),
+						d3.max(dataset, function (d) { return Math.max(d.Close, d.Open); }),
 					])
 					.range([innerHeight, 0])
 					.clamp(true);
 
-				var xAxis = d3.svg.axis()
-					.scale(xScale)
-					.orient("bottom");
-
-				var yAxis = d3.svg.axis()
-					.scale(yScale)
-					.orient("left");
+				var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+				var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
 				var g = svg.append("g")
-					.attr("transform", `translate(${margin.left}, ${margin.top})`);
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 				g.append("g")
 					.attr("class", "y axis")
 					.call(yAxis);
 
 				g.append("g")
-			        	.attr("class", "x axis")
-			        	.attr("transform", `translate(0, ${innerHeight})`)
-			        	.call(xAxis);
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + innerHeight + ")")
+					.call(xAxis);
 
 				var lineClose = d3.svg.line()
-          				.x(function(d) { return xScale(d.Date); })
-          				.y(function(d) { return yScale(d.Close); });
+					.x(function (d) { return xScale(d.Date); })
+					.y(function (d) { return yScale(d.Close); });
 
 				var lineOpen = d3.svg.line()
-          				.x(function(d) { return xScale(d.Date); })
-          				.y(function(d) { return yScale(d.Open); });
-
-				 g.append("path")
-			        	.datum(dataset)
-			        	.attr("class", "line close") 
-			        	.attr("d", lineClose);
+					.x(function (d) { return xScale(d.Date); })
+					.y(function (d) { return yScale(d.Open); });
 
 				g.append("path")
-			        	.datum(dataset)
-			        	.attr("class", "line open")
-			        	.attr("d", lineOpen);
+					.datum(dataset)
+					.attr("class", "line close")
+					.attr("d", lineClose);
+
+				g.append("path")
+					.datum(dataset)
+					.attr("class", "line open")
+					.attr("d", lineOpen);
 			}
 		</script>
 	</body>
