@@ -6,7 +6,7 @@
 		<style>
 
 			html, body {
-				background-color: "#f0f0f0";
+				background-color: "gray";
 				margin: 0;
 				padding: 0;
 			}
@@ -23,11 +23,20 @@
 				stroke: #000;
 				shape-rendering: crisEdges;
 			}
+
+			.line.close {
+				stroke: #4bda00;
+			}
+
+			.line.open {
+				stroke: #ff5733;
+			}
 		</style>
 	</head>
 
 	<body style="background-color:black;">
-		<p> Test 8</p>
+		<h1> Nvidia Stock Price Over Time</h1>
+		<p> Test 9</p>
 		<svg width = "800" height = "400"></svg>
 		<script type="text/javascript">
 			var dataset;
@@ -93,6 +102,57 @@
 					.datum(dataset)
 					.attr("class", "line")
 					.attr("d", line);
+			}
+
+			function createStockComparisonChart(dataset) {
+				var svg = d3.select("svg");
+        			var width = +svg.attr("width");
+        			var height = +svg.attr("height");
+        			var margin = { top: 20, right: 30, bottom: 30, left: 40 };
+        			var innerWidth = width - margin.left - margin.right;
+        			var innerHeight = height - margin.top - margin.bottom;
+
+				var xScale = d3.time.scale()
+          				.domain(d3.extent(dataset, function(d) { return d.Date; }))
+          				.range([0, innerWidth]);
+
+				var yScale = d3.scale.log()
+					.domain([
+						d3.min(dataset, function(d) {return Math.min(d.Close, d.Open); }),
+						d3.max(dataset, function(d) {return Math.max(d.Close, d.Open); }),
+					])
+					.range([innerHeight, 0])
+					.clamp(true);
+
+				var g = svg.append("g")
+					.attr("transform, `translate(${margin.left}, ${margin.top})`);
+
+				g.append("g")
+					.attr("class", "y axis"
+					.call(yAxis);
+
+				g.append("g")
+			        	.attr("class", "x axis")
+			        	.attr("transform", `translate(0, ${innerHeight})`)
+			        	.call(xAxis);
+
+				var lineClose = d3.svg.line()
+          				.x(function(d) { return xScale(d.Date); })
+          				.y(function(d) { return yScale(d.Close); });
+
+				var lineOpen = d3.svg.line()
+          				.x(function(d) { return xScale(d.Date); })
+          				.y(function(d) { return yScale(d.Open); });
+
+				 g.append("path")
+			        	.datum(dataset)
+			        	.attr("class", "line close")  // Apply "close" class
+			        	.attr("d", lineClose);
+
+				g.append("path")
+			        	.datum(dataset)
+			        	.attr("class", "line open")  // Apply "open" class
+			        	.attr("d", lineOpen);
 			}
 		</script>
 	</body>
