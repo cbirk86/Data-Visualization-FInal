@@ -4,7 +4,6 @@
 		<meta charset="UTF-8">
 		<script src="https://d3js.org/d3.v3.min.js"></script>
 		<style>
-
 			html, body {
 				background-color: gray;
 				margin: 0;
@@ -13,7 +12,6 @@
 			
 			.line {
 				fill: none;
-				stroke: #4bda00;
 				stroke-width: 2px;
 			}
 			
@@ -40,19 +38,20 @@
 
 	<body>
 		<h1> Nvidia Stock Price Over Time</h1>
-		<p> Test 11</p>
+		<p> Test 12</p>
 		<svg id="chart1" width="800" height="400"></svg>
-		<svg id="chart2" width="800" height="400"></svg>
+		<svg id="chart2" width="800" height="400" style="margin-top: 50px;"></svg>
 		<script type="text/javascript">
 			var dataset;
 			d3.csv("NVDA.csv", function(data) {
 				data.forEach(function (d) {
 					d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
 					d.Close = +d.Close;
+					d.Open = +d.Open;
 				});
 				
 				data = data.filter(function (d) {
-					return d.Date && d.Close && !isNaN(+d.Close);
+					return d.Date && d.Close && d.Open && !isNaN(+d.Close) && !isNaN(+d.Open);
 				});
 
 				createStockChart(data);
@@ -96,7 +95,7 @@
 
 				g.append("path")
 					.datum(dataset)
-					.attr("class", "line")
+					.attr("class", "line close")
 					.attr("d", line);
 			}
 
