@@ -36,14 +36,15 @@
 
 	<body style="background-color:black;">
 		<h1> Nvidia Stock Price Over Time</h1>
-		<p> Test 9</p>
-		<svg width = "800" height = "400"></svg>
+		<p> Test 10</p>
+		<svg id="chart1" width="800" height="400"></svg>
+		<svg id="chart2" width="800" height="400"></svg>
 		<script type="text/javascript">
 			var dataset;
 			d3.csv("NVDA.csv", function(data) {
 				data.forEach(function (d) {
-               				d.Date = d3.time.format("%Y-%m-%d").parse(d.Date); // Adjust format as needed
-                			d.Close = +d.Close; // Convert Close to a number
+               				d.Date = d3.time.format("%Y-%m-%d").parse(d.Date); 
+                			d.Close = +d.Close;
             			});
 				
 				data = data.filter(function (d) {
@@ -52,11 +53,15 @@
 
 				console.log(data);
 
+
 				createStockChart(data);
+
+
+				createStockComparisonChart(data);
 			});
 
 			function createStockChart(dataset) {
-				var svg = d3.select("svg");
+				var svg = d3.select("#chart1");
 				var width = +svg.attr("width");
 				var height = +svg.attr("height");
 				var margin = { top: 20, right: 30, bottom: 30, left: 40 };
@@ -105,12 +110,12 @@
 			}
 
 			function createStockComparisonChart(dataset) {
-				var svg = d3.select("svg");
-        			var width = +svg.attr("width");
-        			var height = +svg.attr("height");
-        			var margin = { top: 20, right: 30, bottom: 30, left: 40 };
-        			var innerWidth = width - margin.left - margin.right;
-        			var innerHeight = height - margin.top - margin.bottom;
+				var svg = d3.select("#chart2");)
+				var width = +svg.attr("width");
+				var height = +svg.attr("height");
+				var margin = { top: 20, right: 30, bottom: 30, left: 40 };
+				var innerWidth = width - margin.left - margin.right;
+				var innerHeight = height - margin.top - margin.bottom;
 
 				var xScale = d3.time.scale()
           				.domain(d3.extent(dataset, function(d) { return d.Date; }))
@@ -124,11 +129,19 @@
 					.range([innerHeight, 0])
 					.clamp(true);
 
+				var xAxis = d3.svg.axis()
+					.scale(xScale)
+					.orient("bottom");
+
+				var yAxis = d3.svg.axis()
+					.scale(yScale)
+					.orient("left");
+
 				var g = svg.append("g")
-					.attr("transform, `translate(${margin.left}, ${margin.top})`);
+					.attr("transform", `translate(${margin.left}, ${margin.top})`);
 
 				g.append("g")
-					.attr("class", "y axis"
+					.attr("class", "y axis")
 					.call(yAxis);
 
 				g.append("g")
@@ -146,12 +159,12 @@
 
 				 g.append("path")
 			        	.datum(dataset)
-			        	.attr("class", "line close")  // Apply "close" class
+			        	.attr("class", "line close") 
 			        	.attr("d", lineClose);
 
 				g.append("path")
 			        	.datum(dataset)
-			        	.attr("class", "line open")  // Apply "open" class
+			        	.attr("class", "line open")
 			        	.attr("d", lineOpen);
 			}
 		</script>
