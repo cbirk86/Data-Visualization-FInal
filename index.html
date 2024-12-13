@@ -10,6 +10,17 @@
         padding: 0;
       }
 
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      svg {
+        background-color: lightgray;
+      }
+
       .candlestick {
         stroke-width: 1px;
       }
@@ -21,23 +32,12 @@
       .candlestick.down {
         fill: #ff5733; /* Bearish (close < open) */
       }
-
-      .axis path,
-      .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-      }
-
-      svg {
-        background-color: gray;
-      }
     </style>
   </head>
 
   <body>
     <h1>Nvidia Stock Price Candlestick Chart</h1>
-	  <p> Test 14</p>
+    <p> Test 15</p>
     <svg id="chart" width="800" height="400"></svg>
 
     <script type="text/javascript">
@@ -55,6 +55,7 @@
           return d.Date && d.Open && d.Close && d.High && d.Low && !isNaN(+d.Open) && !isNaN(+d.Close) && !isNaN(+d.High) && !isNaN(+d.Low);
         });
 
+        console.log(data); // Verify data is loaded and filtered correctly
         createCandlestickChart(data);
       });
 
@@ -68,7 +69,7 @@
 
         var xScale = d3.time.scale()
           .domain(d3.extent(dataset, function(d) { return d.Date; }))
-          .rangeRoundBands([0, innerWidth], 0.3);
+          .range([0, innerWidth]);
 
         var yScale = d3.scale.linear()
           .domain([d3.min(dataset, function(d) { return d.Low; }), d3.max(dataset, function(d) { return d.High; })])
@@ -89,14 +90,14 @@
           .attr("transform", "translate(0," + innerHeight + ")")
           .call(xAxis);
 
-        var candlestickWidth = xScale.rangeBand();
+        var candlestickWidth = Math.floor(innerWidth / dataset.length);  // Manually calculate width for candlesticks
 
         // Draw the candlestick bars
         g.selectAll(".candlestick")
           .data(dataset)
           .enter().append("rect")
           .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
-          .attr("x", function(d) { return xScale(d.Date); })
+          .attr("x", function(d, i) { return xScale(d.Date) - candlestickWidth / 2; })  // Adjust the placement of candlesticks
           .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
           .attr("width", candlestickWidth)
           .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
@@ -106,8 +107,8 @@
           .data(dataset)
           .enter().append("line")
           .attr("class", "highlow")
-          .attr("x1", function(d) { return xScale(d.Date) + candlestickWidth / 2; })
-          .attr("x2", function(d) { return xScale(d.Date) + candlestickWidth / 2; })
+          .attr("x1", function(d, i) { return xScale(d.Date); })
+          .attr("x2", function(d, i) { return xScale(d.Date); })
           .attr("y1", function(d) { return yScale(d.High); })
           .attr("y2", function(d) { return yScale(d.Low); })
           .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
