@@ -32,12 +32,18 @@
       .candlestick.down {
         fill: #ff5733; /* Bearish (close < open) */
       }
+
+      /* Axis label styling */
+      .axis-label {
+        font-size: 14px;
+        fill: white;
+      }
     </style>
   </head>
 
   <body>
     <h1>Nvidia Stock Price Candlestick Chart (Last 5 Years)</h1>
-    <p> Test 17</p>
+    <p> Test 18</p>
     <svg id="chart" width="800" height="400"></svg>
 
     <script type="text/javascript">
@@ -69,7 +75,7 @@
         var svg = d3.select("#chart");
         var width = +svg.attr("width");
         var height = +svg.attr("height");
-        var margin = { top: 20, right: 30, bottom: 30, left: 40 };
+        var margin = { top: 20, right: 30, bottom: 50, left: 50 }; // Added more space for labels
         var innerWidth = width - margin.left - margin.right;
         var innerHeight = height - margin.top - margin.bottom;
 
@@ -77,12 +83,15 @@
           .domain(d3.extent(dataset, function(d) { return d.Date; }))
           .range([0, innerWidth]);
 
-        var yScale = d3.scale.linear()
+        // Use a logarithmic scale for the y-axis
+        var yScale = d3.scale.log()
           .domain([d3.min(dataset, function(d) { return d.Low; }), d3.max(dataset, function(d) { return d.High; })])
-          .range([innerHeight, 0]);
+          .range([innerHeight, 0])
+          .base(10)  // Set the base for the log scale (default is 10)
+          .clamp(true); // Avoid values below the minimum range
 
         var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+        var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(6, ",.0f");  // Optional: Add nice ticks for log scale
 
         var g = svg.append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -95,6 +104,23 @@
           .attr("class", "x axis")
           .attr("transform", "translate(0," + innerHeight + ")")
           .call(xAxis);
+
+        // Add x-axis label
+        svg.append("text")
+          .attr("class", "axis-label")
+          .attr("x", width / 2)
+          .attr("y", height - 10) // Position just below the chart
+          .attr("text-anchor", "middle")
+          .text("Date");
+
+        // Add y-axis label
+        svg.append("text")
+          .attr("class", "axis-label")
+          .attr("transform", "rotate(-90)")
+          .attr("x", -height / 2)
+          .attr("y", 20)
+          .attr("text-anchor", "middle")
+          .text("Price (Log Scale)");
 
         var candlestickWidth = Math.floor(innerWidth / dataset.length);  // Manually calculate width for candlesticks
 
