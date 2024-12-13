@@ -21,7 +21,10 @@
 	<body>
 		<svg width = "800" height = "400"></svg>
 		<script type="text/javascript">
+			var dataset;
 			d3.csv("NVDA.csv", function(data) {
+				dataset = data;
+				console.log(dataset)
 				var date =  []
 				var open = []
 				var high = []
@@ -30,8 +33,6 @@
 				var adjClose = []
 				var volume = []
 				for (var i = 0; i < data.length; i++) {
-					console.log(data);
-
 					date[i] = data[i].Date
 					open[i] = data[i].Open
 					high[i] = data[i].High
@@ -41,7 +42,61 @@
 					volume[i] = data[i].Volume
 				}
 			});
-			
+
+			function createStockChart() {
+				var svg = d3.select("svg");
+				var width = +svg.attr("width");
+				var height = +svg.attr("height");
+				var margin = { top: 20, right: 30, bottom: 30, left: 40 };
+				var innerWidth = width - margin.left - margin.right;
+				var innerHeight = height - margin.top - margin.bottom;
+				
+				var xScale = d3.time.scale()
+  					.domain(d3.extent(data, function (d) { return d.Date; }))
+  					.range([0, innerWidth]);
+
+				var yScale = d3.scale.linear()
+					.domain([
+    					d3.min(data, function (d) { return d.Close; }),
+    					d3.max(data, function (d) { return d.Close; })
+  					])
+  					.range([innerHeight, 0]); 	
+
+				var xAxis = d3.svg.axis()
+					.scale(xScale)
+					.orient("bottom");
+
+				var yAxis = d3.svg.axis()
+					.scale(yScale)
+					.orient("left");
+
+				var g = svg.append("g")
+					.attr("transform", 'translate(${margin.left}, ${margin.top})');
+
+				g.append("g")
+					.attr("class", "y axis")
+					.call(yAxis);
+
+				g.append("g")
+					.attr("class", "x axis")
+					.attr("transform", 'translate(0, ${innerHeight})')
+					.call(xAxis);
+
+				var line = d3.svg.line()
+					.x(function (d) {return xScale(d.Date); })
+					.y(function (d) {return yScale(d.Close); });
+
+				g.append("path")
+					.datum(dataset)
+					.attr("class", "line")
+					.attr("d", line);
+
+				.line {
+					fill: none;
+					stroke: steelblue;
+					stroke-width: 2px;
+				}
+			}
 		</script>
 	</body>
 </html>
