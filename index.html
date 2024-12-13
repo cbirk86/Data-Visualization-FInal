@@ -42,9 +42,10 @@
 					adjClose[i] = data[i].adjClose
 					volume[i] = data[i].Volume
 				}
+				createStockChart(dataset)
 			});
 
-			function createStockChart() {
+			function createStockChart(dataset) {
 				var svg = d3.select("svg");
 				var width = +svg.attr("width");
 				var height = +svg.attr("height");
@@ -53,13 +54,13 @@
 				var innerHeight = height - margin.top - margin.bottom;
 				
 				var xScale = d3.time.scale()
-  					.domain(d3.extent(data, function (d) { return d.Date; }))
+  					.domain(d3.extent(dataset, function (d) { return d.Date; }))
   					.range([0, innerWidth]);
 
 				var yScale = d3.scale.linear()
 					.domain([
-    					d3.min(data, function (d) { return d.Close; }),
-    					d3.max(data, function (d) { return d.Close; })
+    					d3.min(dataset, function (d) { return d.Close; }),
+    					d3.max(dataset, function (d) { return d.Close; })
   					])
   					.range([innerHeight, 0]); 	
 
@@ -72,7 +73,7 @@
 					.orient("left");
 
 				var g = svg.append("g")
-					.attr("transform", 'translate(${margin.left}, ${margin.top})');
+					.attr("transform", `translate(${margin.left}, ${margin.top})`);
 
 				g.append("g")
 					.attr("class", "y axis")
@@ -80,7 +81,7 @@
 
 				g.append("g")
 					.attr("class", "x axis")
-					.attr("transform", 'translate(0, ${innerHeight})')
+					.attr(`transform", 'translate(0, ${innerHeight})`)
 					.call(xAxis);
 
 				var line = d3.svg.line()
