@@ -36,8 +36,8 @@
   </head>
 
   <body>
-    <h1>Nvidia Stock Price Candlestick Chart (Last 10 Years)</h1>
-    <p> Test 16</p>
+    <h1>Nvidia Stock Price Candlestick Chart (Last 5 Years)</h1>
+    <p> Test 17</p>
     <svg id="chart" width="800" height="400"></svg>
 
     <script type="text/javascript">
@@ -51,17 +51,17 @@
           d.Low = +d.Low;
         });
 
-        // Get the current date and calculate the cutoff date (10 years ago)
+        // Get the current date and calculate the cutoff date (5 years ago)
         var currentDate = new Date();
         var cutoffDate = new Date();
-        cutoffDate.setFullYear(currentDate.getFullYear() - 10);
+        cutoffDate.setFullYear(currentDate.getFullYear() - 5);  // Change here: 5 years ago
 
-        // Filter the dataset to only include the last 10 years
+        // Filter the dataset to only include the last 5 years
         data = data.filter(function(d) {
           return d.Date >= cutoffDate;
         });
 
-        console.log(data); // Verify that only the last 10 years of data are included
+        console.log(data); // Verify that only the last 5 years of data are included
         createCandlestickChart(data);
       });
 
