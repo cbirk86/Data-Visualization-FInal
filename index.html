@@ -26,6 +26,9 @@
 			d3.csv("NVDA.csv", function(data) {
 				dataset = data;
 				console.log(dataset)
+				data = data.filter(function (d) {
+  					return d.Date && d.Close && !isNaN(+d.Close);
+				});
 				var date =  []
 				var open = []
 				var high = []
