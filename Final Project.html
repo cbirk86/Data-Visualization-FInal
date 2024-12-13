@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script src="https://d3js.org/d3.v3.min.js"></script>
+	</head>
+
+	<body>
+		<script type="text/javascript">
+			d3.csv("NVDA.csv", function(data) {
+				for (var i = 0; i < data.length; i++) {
+					console.log(data[i].Date);
+					console.log(data[i].Open);
+					console.log(data[i].High);
+					console.log(data[i].Low);
+					console.log(data[i].Close);
+					console.log(data[i]["Adj Close"]);
+					console.log(data[i].Volume);
+				}
+			});
+		</script>
+	</body>
+</html>
