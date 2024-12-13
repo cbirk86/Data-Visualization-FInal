@@ -3,21 +3,45 @@
 	<head>
 		<meta charset="UTF-8">
 		<script src="https://d3js.org/d3.v3.min.js"></script>
+		<style>
+			.line {
+				fill: none;
+				stroke: steelblue;
+				stroke-width: 2px;
+			}
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: #000;
+				shape-rendering: crisEdges;
+			}
+		</style>
 	</head>
 
 	<body>
+		<svg width = "800" height = "400"></svg>
 		<script type="text/javascript">
 			d3.csv("NVDA.csv", function(data) {
+				var date =  []
+				var open = []
+				var high = []
+				var low = []
+				var close = []
+				var adjClose = []
+				var volume = []
 				for (var i = 0; i < data.length; i++) {
-					console.log(data[i].Date);
-					console.log(data[i].Open);
-					console.log(data[i].High);
-					console.log(data[i].Low);
-					console.log(data[i].Close);
-					console.log(data[i]["Adj Close"]);
-					console.log(data[i].Volume);
+					console.log(data);
+
+					date[i] = data[i].Date
+					open[i] = data[i].Open
+					high[i] = data[i].High
+					low[i] = data[i].Low
+					close[i] = data[i].Close
+					adjClose[i] = data[i].adjClose
+					volume[i] = data[i].Volume
 				}
 			});
+			
 		</script>
 	</body>
 </html>
