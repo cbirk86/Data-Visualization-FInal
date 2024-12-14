@@ -7,7 +7,9 @@
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
-      background-color: #f0f0f0; /* Set background color of the site to gray */
+      background-color: #f0f0f0; /* Set background color of the entire page to gray */
+      margin: 0;
+      padding: 0;
     }
     .line {
       fill: none;
@@ -20,11 +22,12 @@
     }
     #chart {
       margin-left: 100px;
-      background-color: #e0e0e0;
+      background-color: #d3d3d3; /* Set background color of the chart to a gray */
     }
     #controls {
       text-align: center;
       margin: 20px;
+      background-color: #f0f0f0; /* Set background of the controls section to match the page */
     }
     h1 {
       text-align: center;
@@ -43,7 +46,7 @@
     <select id="endYear"></select>
   </div>
 
-  <svg id="chart" width="1600" height="700"></svg> <!-- Slightly smaller size -->
+  <svg id="chart" width="1600" height="700"></svg> <!-- Chart size -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
