@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Stock Chart</title>
+  <title>Interactive Stock Chart with Volume</title>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
@@ -15,6 +15,10 @@
       fill: none;
       stroke: limegreen;
       stroke-width: 2px;
+    }
+    .bar {
+      fill: steelblue;
+      opacity: 0.7;
     }
     .axis-label {
       font-size: 14px;
@@ -36,7 +40,7 @@
   </style>
 </head>
 <body>
-  <h1>Interactive Stock Chart</h1>
+  <h1>Interactive Stock Chart with Volume</h1>
 
   <div id="controls">
     <label for="startYear">Start Year:</label>
@@ -52,17 +56,18 @@
     </select>
   </div>
 
-  <svg id="chart" width="1600" height="700"></svg> <!-- Chart size -->
+  <svg id="chart" width="1600" height="900"></svg> <!-- Chart size increased for volume bar -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
       data.forEach(function(d) {
         d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
         d.Close = Math.max(0.01, +d.Close); // Prevent zero or negative stock prices
+        d.Volume = +d.Volume; // Volume data
       });
 
       data = data.filter(function(d) {
-        return d.Date && d.Close && !isNaN(d.Close);
+        return d.Date && d.Close && !isNaN(d.Close) && !isNaN(d.Volume);
       });
 
       const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
@@ -102,7 +107,7 @@
 
       const width = +svg.attr("width");
       const height = +svg.attr("height");
-      const margin = { top: 20, right: 30, bottom: 50, left: 70 }; // Increase left margin to give space
+      const margin = { top: 20, right: 30, bottom: 100, left: 70 }; // Increased bottom margin for volume bars
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -124,24 +129,19 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
-      // Create the yScale based on the selected scale type
       let yScale;
       let yTickValues;
       if (scaleType === "log") {
         yScale = d3.scale.log()
           .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
-          .range([innerHeight, 0])
+          .range([innerHeight - 80, 0]) // Reduced height for volume bar space
           .nice();
-
-        // Define tick values for log scale, including 0.1 and 0.01
         yTickValues = [0.01, 0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
       } else {
         yScale = d3.scale.linear()
-          .domain([0, d3.max(filteredData, d => d.Close)]) // Ensure 0 is included in linear scale
-          .range([innerHeight, 0])
-          .nice();
-
-        yTickValues = d3.range(0, d3.max(filteredData, d => d.Close), 10); // Labels for linear scale (0 and increment by 10)
+          .domain([0, d3.max(filteredData, d => d.Close)])
+          .range([innerHeight - 80, 0]);
+        yTickValues = d3.range(0, d3.max(filteredData, d => d.Close), 10);
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -149,8 +149,8 @@
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
-        .tickValues(yTickValues)  // Use predefined tick values
-        .tickFormat(d3.format(".2f"))  // Ensures two decimal places
+        .tickValues(yTickValues)
+        .tickFormat(d3.format(".2f"))
         .tickPadding(10);
 
       const g = svg.append("g")
@@ -159,31 +159,11 @@
       g.append("g").attr("class", "y axis").call(yAxis)
         .append("text")
         .attr("transform", "rotate(-90)")
-        .attr("y", -50)  // Increased padding between axis label and ticks
+        .attr("y", -50)
         .attr("x", -innerHeight / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text("Stock Price");
-
-      // Add a visual '0' label for the logarithmic scale
-      if (scaleType === "log") {
-        g.append("text")
-          .attr("x", -innerHeight / 2)
-          .attr("y", innerHeight + 30)  // Adjust position to bottom of the axis
-          .style("text-anchor", "middle")
-          .attr("class", "axis-label")
-          .text("0 (Log Scale)");  // Add a label to indicate 0 on log scale
-      }
-
-      g.append("g").attr("class", "x axis")
-        .attr("transform", `translate(0,${innerHeight})`)
-        .call(xAxis)
-        .append("text")
-        .attr("x", innerWidth / 2)
-        .attr("y", 40)
-        .style("text-anchor", "middle")
-        .attr("class", "axis-label")
-        .text("Date");
 
       const line = d3.svg.line()
         .x(d => xScale(d.Date))
@@ -193,6 +173,40 @@
         .datum(filteredData)
         .attr("class", "line")
         .attr("d", line);
+
+      // Volume bar chart
+      const volumeHeight = 80; // Space reserved for volume bars
+
+      const volumeScale = d3.scale.linear()
+        .domain([0, d3.max(filteredData, d => d.Volume)])
+        .range([0, volumeHeight]);
+
+      const volumeGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top + innerHeight})`);
+
+      volumeGroup.selectAll(".volume-bar")
+        .data(filteredData)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.Date))
+        .attr("y", d => innerHeight - volumeScale(d.Volume))
+        .attr("width", xScale.rangeBand())
+        .attr("height", d => volumeScale(d.Volume));
+
+      // Volume y-axis (right side)
+      const volumeAxis = d3.svg.axis()
+        .scale(volumeScale)
+        .orient("right");
+
+      volumeGroup.append("g").attr("class", "volume axis")
+        .call(volumeAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -40)
+        .attr("x", volumeHeight / 2)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Volume");
     }
   </script>
 </body>
