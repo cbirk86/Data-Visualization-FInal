@@ -177,9 +177,10 @@
         .attr("d", line);
 
       // Volume line chart (overlay)
+      const volumeMax = d3.max(filteredData, d => d.Volume);
       const volumeScale = d3.scale.linear()
-        .domain([0, d3.max(filteredData, d => d.Volume)])
-        .range([0, innerHeight - 80]); // Adjusted height for volume line space
+        .domain([0, volumeMax])
+        .range([innerHeight - 80, 0]); // Adjusted height for volume line space
 
       const volumeLine = d3.svg.line()
         .x(d => xScale(d.Date))
