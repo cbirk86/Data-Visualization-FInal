@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Stock Chart with Volume</title>
+  <title>Interactive Stock Chart with Volume Overlay</title>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
@@ -16,9 +16,11 @@
       stroke: limegreen;
       stroke-width: 2px;
     }
-    .bar {
-      fill: steelblue;
-      opacity: 0.7;
+    .volume-line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2px;
+      stroke-dasharray: 5,5; /* Dash style for volume line */
     }
     .axis-label {
       font-size: 14px;
@@ -40,7 +42,7 @@
   </style>
 </head>
 <body>
-  <h1>Interactive Stock Chart with Volume</h1>
+  <h1>Interactive Stock Chart with Volume Overlay</h1>
 
   <div id="controls">
     <label for="startYear">Start Year:</label>
@@ -56,7 +58,7 @@
     </select>
   </div>
 
-  <svg id="chart" width="1600" height="900"></svg> <!-- Chart size increased for volume bar -->
+  <svg id="chart" width="1600" height="900"></svg> <!-- Chart size increased for volume line -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -107,7 +109,7 @@
 
       const width = +svg.attr("width");
       const height = +svg.attr("height");
-      const margin = { top: 20, right: 30, bottom: 100, left: 70 }; // Increased bottom margin for volume bars
+      const margin = { top: 20, right: 30, bottom: 100, left: 70 }; // Increased bottom margin for volume line
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -134,7 +136,7 @@
       if (scaleType === "log") {
         yScale = d3.scale.log()
           .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
-          .range([innerHeight - 80, 0]) // Reduced height for volume bar space
+          .range([innerHeight - 80, 0]) // Reduced height for volume line space
           .nice();
         yTickValues = [0.01, 0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
       } else {
@@ -174,36 +176,32 @@
         .attr("class", "line")
         .attr("d", line);
 
-      // Volume bar chart
-      const volumeHeight = 80; // Space reserved for volume bars
-
+      // Volume line chart (overlay)
       const volumeScale = d3.scale.linear()
         .domain([0, d3.max(filteredData, d => d.Volume)])
-        .range([0, volumeHeight]);
+        .range([0, innerHeight - 80]); // Adjusted height for volume line space
 
-      const volumeGroup = svg.append("g")
-        .attr("transform", `translate(${margin.left},${margin.top + innerHeight})`);
+      const volumeLine = d3.svg.line()
+        .x(d => xScale(d.Date))
+        .y(d => volumeScale(d.Volume));
 
-      volumeGroup.selectAll(".volume-bar")
-        .data(filteredData)
-        .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", d => xScale(d.Date))
-        .attr("y", d => innerHeight - volumeScale(d.Volume))
-        .attr("width", xScale.rangeBand())
-        .attr("height", d => volumeScale(d.Volume));
+      g.append("path")
+        .datum(filteredData)
+        .attr("class", "volume-line")
+        .attr("d", volumeLine);
 
       // Volume y-axis (right side)
       const volumeAxis = d3.svg.axis()
         .scale(volumeScale)
         .orient("right");
 
-      volumeGroup.append("g").attr("class", "volume axis")
+      g.append("g").attr("class", "volume axis")
+        .attr("transform", `translate(${innerWidth}, 0)`)
         .call(volumeAxis)
         .append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", -40)
-        .attr("x", volumeHeight / 2)
+        .attr("x", innerHeight / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text("Volume");
