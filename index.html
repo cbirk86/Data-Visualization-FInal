@@ -7,7 +7,7 @@
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
-      background-color: #f0f0f0; /* Set background color of the site to grey */
+      background-color: #f0f0f0; /* Set background color of the site to gray */
     }
     .line {
       fill: none;
@@ -141,13 +141,14 @@
         .attr("class", "axis-label")
         .text("Stock Price (Logarithmic)");
 
-      // Adding a label for the smallest value on the y-axis (min is 1)
+      // Add a label for the minimum value (which is the smallest visible value in the log scale)
+      const minValue = d3.min(filteredData, d => d.Close);
       g.append("text")
         .attr("x", -innerHeight / 2)
         .attr("y", innerHeight + 30)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
-        .text("0 (Min Value)");
+        .text(`Min Value: ${minValue}`);
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
