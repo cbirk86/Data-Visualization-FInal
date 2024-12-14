@@ -144,7 +144,7 @@
           .scale(yScale)
           .orient("left")
           .tickFormat(d3.format(",.0f"))
-          .ticks(6); // Set the number of ticks
+          .ticks(5); // Reduced ticks for volume
       } else {
         // For prices, use a logarithmic scale
         yScale = d3.scale.log()
@@ -155,7 +155,7 @@
           .scale(yScale)
           .orient("left")
           .tickFormat(d3.format(",.0f"))
-          .ticks(6); // Set the number of ticks
+          .ticks(5); // Reduced ticks for logarithmic scale
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
