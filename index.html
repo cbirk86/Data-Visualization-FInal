@@ -126,24 +126,25 @@
 
       // Create the yScale based on the selected scale type
       let yScale;
+      let yTickValues;
       if (scaleType === "log") {
         yScale = d3.scale.log()
           .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
           .range([innerHeight, 0])
           .nice();
+
+        // Define tick values excluding 0 (log scale can't include 0)
+        yTickValues = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
       } else {
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d.Close)]) // Ensure 0 is included in linear scale
           .range([innerHeight, 0])
           .nice();
+
+        yTickValues = d3.range(0, d3.max(filteredData, d => d.Close), 10); // Labels for linear scale (0 and increment by 10)
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-
-      // Define y-axis tick values for log scale (0 can't be used in log scale)
-      const yTickValues = scaleType === "log" ? 
-        [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000] : // More labels for log scale
-        d3.range(0, d3.max(filteredData, d => d.Close), 10); // Labels for linear scale (0 and increment by 10)
 
       const yAxis = d3.svg.axis()
         .scale(yScale)
@@ -163,6 +164,16 @@
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text("Stock Price");
+
+      // Add a visual '0' label for the logarithmic scale
+      if (scaleType === "log") {
+        g.append("text")
+          .attr("x", -innerHeight / 2)
+          .attr("y", innerHeight + 30)  // Adjust position to bottom of the axis
+          .style("text-anchor", "middle")
+          .attr("class", "axis-label")
+          .text("0 (Log Scale)");  // Add a label to indicate 0 on log scale
+      }
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
