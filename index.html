@@ -122,16 +122,19 @@
         .scale(yScale)
         .orient("left")
         .tickFormat(d3.format(",.0f"))
-        .ticks(6)  // Set number of ticks to 6, you can adjust this further if needed
-        .tickSize(-innerWidth);  // Extends the ticks across the chart width
+        .ticks(6);  // Set number of ticks to 6, you can adjust this further if needed
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
       g.append("g").attr("class", "y axis").call(yAxis)
-        .selectAll("text")
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -40)
+        .attr("x", -innerHeight / 2)
         .style("text-anchor", "middle")
-        .attr("transform", "rotate(-45)");  // Rotating the labels by 45 degrees
+        .attr("class", "axis-label")
+        .text("Stock Price (Logarithmic)");
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
