@@ -225,22 +225,10 @@
         .attr("d", line);
     }
 
+    // Function to generate custom log ticks with specific intervals
     function generateLogTicks(minValue, maxValue) {
-      const ticks = [];
-      const start = Math.floor(Math.log(minValue) / Math.LN10);
-      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
-
-      for (let i = start; i <= end; i++) {
-        const base = Math.pow(10, i);
-        for (let j = 1; j <= 9; j++) {
-          const value = base * j;
-          if (value >= minValue && value <= maxValue) {
-            ticks.push(value);
-          }
-        }
-      }
-
-      return ticks;
+      const ticks = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.1, 0.04]; // Fixed intervals
+      return ticks.filter(tick => tick >= minValue && tick <= maxValue); // Filter the ticks within the range
     }
   </script>
 </body>
