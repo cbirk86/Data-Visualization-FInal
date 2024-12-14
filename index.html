@@ -37,6 +37,11 @@
       stroke-width: 0.5;
       stroke-dasharray: 2, 2; /* Dotted line */
     }
+    .axis-line {
+      fill: none;
+      stroke: black;
+      stroke-width: 1;
+    }
   </style>
 </head>
 <body>
@@ -182,6 +187,14 @@
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
+      // Draw the vertical axis line (X-axis)
+      g.append("line")
+        .attr("class", "axis-line")
+        .attr("x1", 0)
+        .attr("x2", 0)
+        .attr("y1", 0)
+        .attr("y2", innerHeight);
+
       g.append("g").attr("class", "y axis").call(yAxis)
         .append("text")
         .attr("transform", "rotate(-90)")
@@ -190,6 +203,14 @@
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text(dataType === "Volume" ? "Volume" : "Stock Price");
+
+      // Draw the horizontal axis line (Y-axis)
+      g.append("line")
+        .attr("class", "axis-line")
+        .attr("x1", 0)
+        .attr("x2", innerWidth)
+        .attr("y1", innerHeight)
+        .attr("y2", innerHeight);
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
