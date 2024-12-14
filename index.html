@@ -156,7 +156,8 @@
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
-          .ticks(6);
+          .ticks(6)
+          .tickFormat(d3.format(".2f")); // Format for linear axis to show decimals
       } else {
         // Logarithmic scale with refined tick generation
         yScale = d3.scale.log()
@@ -164,14 +165,19 @@
           .range([innerHeight, 0])
           .nice();
 
-        // Generate refined ticks for logarithmic scale
+        // Refined ticks for the logarithmic scale
         const logTicks = generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]));
 
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
           .tickValues(logTicks)
-          .tickFormat(d3.format(".0f"));
+          .tickFormat(function(d) {
+            if (d < 1) {
+              return d3.format(".2f")(d); // Show two decimal places for values <1
+            }
+            return d3.format(".0f")(d); // Otherwise, show integer ticks
+          });
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -210,7 +216,7 @@
 
       // Add horizontal grid lines
       g.selectAll(".y-grid-line")
-        .data(yScale.ticks(6))
+        .data(yScale.ticks(6)) // Use ticks based on yScale
         .enter().append("line")
         .attr("class", "grid-line")
         .attr("x1", 0)
@@ -228,15 +234,20 @@
         .attr("d", line);
     }
 
-    // Generate refined logarithmic ticks (major powers of 10)
+    // Function to generate log ticks
     function generateLogTicks(minValue, maxValue) {
       const ticks = [];
       const start = Math.floor(Math.log(minValue) / Math.LN10);
       const end = Math.ceil(Math.log(maxValue) / Math.LN10);
 
-      // Only include major powers of 10 (1, 10, 100, ...)
       for (let i = start; i <= end; i++) {
-        ticks.push(Math.pow(10, i));
+        const base = Math.pow(10, i);
+        for (let j = 1; j <= 9; j++) { // Reduce to major powers of 10
+          const value = base * j;
+          if (value >= minValue && value <= maxValue) {
+            ticks.push(value);
+          }
+        }
       }
 
       return ticks;
