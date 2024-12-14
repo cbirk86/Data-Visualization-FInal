@@ -6,6 +6,9 @@
   <title>Interactive Stock Chart</title>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
+    body {
+      background-color: #f0f0f0; /* Set background color of the site to grey */
+    }
     .line {
       fill: none;
       stroke: limegreen;
@@ -137,6 +140,14 @@
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text("Stock Price (Logarithmic)");
+
+      // Adding a label for the smallest value on the y-axis (min is 1)
+      g.append("text")
+        .attr("x", -innerHeight / 2)
+        .attr("y", innerHeight + 30)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("0 (Min Value)");
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
