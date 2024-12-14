@@ -8,7 +8,6 @@
   <style>
     body {
       background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
     }
     .line {
       fill: none;
@@ -31,22 +30,11 @@
       text-align: center;
       font-weight: bold;
     }
-    .year-line {
-      fill: none;
-      stroke: lightgray;
-      stroke-width: 0.5;
-      stroke-dasharray: 2, 2; /* Dotted line */
-    }
-    .axis-line {
-      fill: none;
-      stroke: black;
-      stroke-width: 1;
-    }
     .grid-line {
       fill: none;
-      stroke: black;
+      stroke: black; /* Color of the grid lines */
       stroke-width: 0.5;
-      stroke-dasharray: 2, 2; /* Dotted grid lines */
+      stroke-dasharray: 2, 2; /* Dotted lines */
     }
   </style>
 </head>
@@ -69,10 +57,10 @@
       <option value="Volume">Volume</option>
     </select>
 
-    <label for="scaleType">Select Scale:</label>
+    <label for="scaleType">Scale Type:</label>
     <select id="scaleType">
-      <option value="log">Logarithmic</option>
       <option value="linear">Linear</option>
+      <option value="logarithmic">Logarithmic</option>
     </select>
   </div>
 
@@ -109,15 +97,14 @@
 
       // Initial chart rendering with "Close"
       const dataTypeSelect = d3.select("#dataType");
-      const scaleTypeSelect = d3.select("#scaleType");
-      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close", "log");
+      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close", "linear");
 
       // Update chart on dropdown change
       d3.selectAll("#startYear, #endYear, #dataType, #scaleType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
         const dataType = dataTypeSelect.property("value");
-        const scaleType = scaleTypeSelect.property("value");
+        const scaleType = d3.select("#scaleType").property("value");
 
         if (startYear > endYear) {
           alert("Start year must be less than or equal to end year.");
@@ -156,50 +143,37 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
+      // Decide which y-scale to use based on selected data and scale type
       let yScale;
       let yAxis;
 
-      // Set scale type (logarithmic or linear)
       if (scaleType === "linear") {
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d[dataType])])
-          .range([innerHeight, 0])
-          .nice();
-        yAxis = d3.svg.axis()
-          .scale(yScale)
-          .orient("left")
-          .tickFormat(d3.format(",.0f"))
-          .ticks(6);
-      } else {
-        yScale = d3.scale.log()
-          .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
         
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
-          .tickFormat(d => {
-            if (d < 1) {
-              return d3.format(".2f")(d);
-            }
-            return d3.format(".0f")(d);
-          })
-          .tickValues(generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])));
+          .ticks(6);
+      } else {
+        yScale = d3.scale.log()
+          .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
+          .range([innerHeight, 0])
+          .nice();
+
+        yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .tickFormat(d => d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d))
+          .ticks(6);
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-
-      // Draw the vertical axis line (X-axis)
-      g.append("line")
-        .attr("class", "axis-line")
-        .attr("x1", 0)
-        .attr("x2", 0)
-        .attr("y1", 0)
-        .attr("y2", innerHeight);
 
       g.append("g").attr("class", "y axis").call(yAxis)
         .append("text")
@@ -209,14 +183,6 @@
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
         .text(dataType === "Volume" ? "Volume" : "Stock Price");
-
-      // Draw the horizontal axis line (Y-axis)
-      g.append("line")
-        .attr("class", "axis-line")
-        .attr("x1", 0)
-        .attr("x2", innerWidth)
-        .attr("y1", innerHeight)
-        .attr("y2", innerHeight);
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
@@ -228,29 +194,25 @@
         .attr("class", "axis-label")
         .text("Date");
 
-      // Add vertical lines from each x-axis tick
-      g.selectAll(".x-axis-tick")
-        .each(function(d) {
-          const tickValue = xScale(d);
-          g.append("line")
-            .attr("class", "grid-line")
-            .attr("x1", tickValue)
-            .attr("x2", tickValue)
-            .attr("y1", 0)
-            .attr("y2", innerHeight);
-        });
+      // Add vertical grid lines
+      g.selectAll(".x-grid-line")
+        .data(xScale.ticks(10))
+        .enter().append("line")
+        .attr("class", "grid-line")
+        .attr("x1", d => xScale(d))
+        .attr("x2", d => xScale(d))
+        .attr("y1", 0)
+        .attr("y2", innerHeight);
 
-      // Add horizontal lines from each y-axis tick
-      g.selectAll(".y-axis-tick")
-        .each(function(d) {
-          const tickValue = yScale(d);
-          g.append("line")
-            .attr("class", "grid-line")
-            .attr("x1", 0)
-            .attr("x2", innerWidth)
-            .attr("y1", tickValue)
-            .attr("y2", tickValue);
-        });
+      // Add horizontal grid lines
+      g.selectAll(".y-grid-line")
+        .data(yScale.ticks(6))
+        .enter().append("line")
+        .attr("class", "grid-line")
+        .attr("x1", 0)
+        .attr("x2", innerWidth)
+        .attr("y1", d => yScale(d))
+        .attr("y2", d => yScale(d));
 
       const line = d3.svg.line()
         .x(d => xScale(d.Date))
@@ -260,31 +222,6 @@
         .datum(filteredData)
         .attr("class", "line")
         .attr("d", line);
-    }
-
-    function generateLogTicks(minValue, maxValue) {
-      const ticks = [];
-      const start = Math.floor(Math.log(minValue) / Math.LN10);
-      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
-
-      for (let i = start; i <= end; i++) {
-        const base = Math.pow(10, i);
-        for (let j = 1; j <= 5; j++) {
-          const value = base * j;
-          if (value >= minValue && value <= maxValue) {
-            ticks.push(value);
-          }
-        }
-      }
-
-      for (let i = 1; i <= 5; i++) {
-        const value = i * 0.1;
-        if (value >= minValue && value <= maxValue) {
-          ticks.push(value);
-        }
-      }
-
-      return ticks;
     }
   </script>
 </body>
