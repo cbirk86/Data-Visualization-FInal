@@ -202,7 +202,7 @@
 
       for (let i = start; i <= end; i++) {
         const base = Math.pow(10, i);
-        for (let j = 1; j <= 10; j++) {
+        for (let j = 1; j <= 5; j++) {  // Reduced number of steps for cleaner ticks at the lower range
           const value = base * j;
           if (value >= minValue && value <= maxValue) {
             ticks.push(value);
