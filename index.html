@@ -1,105 +1,244 @@
-function updateChart(data, startYear, endYear, dataType, scaleType) {
-  const svg = d3.select("#chart");
-  svg.selectAll("*").remove();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Stock Chart</title>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <style>
+    body {
+      background-color: #f0f0f0;
+    }
+    .line {
+      fill: none;
+      stroke: limegreen;
+      stroke-width: 2px;
+    }
+    .axis-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #chart {
+      margin-left: 100px;
+      background-color: #e0e0e0;
+    }
+    #controls {
+      text-align: center;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-weight: bold;
+    }
+    .grid-line {
+      fill: none;
+      stroke: black;
+      stroke-width: 0.5;
+      stroke-dasharray: 2, 2; /* Dashed grid lines */
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Stock Chart</h1>
 
-  const width = +svg.attr("width");
-  const height = +svg.attr("height");
-  const margin = { top: 20, right: 30, bottom: 50, left: 50 };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+  <div id="controls">
+    <label for="startYear">Start Year:</label>
+    <select id="startYear"></select>
 
-  const filteredData = data.filter(d => {
-    const year = d.Date.getFullYear();
-    return year >= startYear && year <= endYear;
-  });
+    <label for="endYear">End Year:</label>
+    <select id="endYear"></select>
 
-  if (filteredData.length === 0) {
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", height / 2)
-      .attr("text-anchor", "middle")
-      .text("No data available for the selected period.");
-    return;
-  }
+    <label for="dataType">Select Data:</label>
+    <select id="dataType">
+      <option value="Close">Close</option>
+      <option value="Open">Open</option>
+      <option value="High">High</option>
+      <option value="Low">Low</option>
+      <option value="Volume">Volume</option>
+    </select>
 
-  const xScale = d3.time.scale()
-    .domain(d3.extent(filteredData, d => d.Date))
-    .range([0, innerWidth]);
+    <label for="scaleType">Scale Type:</label>
+    <select id="scaleType">
+      <option value="linear">Linear</option>
+      <option value="logarithmic">Logarithmic</option>
+    </select>
+  </div>
 
-  let yScale;
-  let yAxis;
+  <svg id="chart" width="1600" height="700"></svg>
 
-  if (scaleType === "linear") {
-    yScale = d3.scale.linear()
-      .domain([0, d3.max(filteredData, d => d[dataType])])
-      .range([innerHeight, 0])
-      .nice();
-    
-    yAxis = d3.svg.axis()
-      .scale(yScale)
-      .orient("left")
-      .ticks(6)
-      .tickFormat(d3.format(".2f")); // Format for linear axis to show decimals
-  } else {
-    yScale = d3.scale.log()
-      .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
-      .range([innerHeight, 0])
-      .nice();
-
-    const logTicks = generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]));
-
-    yAxis = d3.svg.axis()
-      .scale(yScale)
-      .orient("left")
-      .tickValues(logTicks)
-      .tickFormat(function(d) {
-        if (d < 1) {
-          return d3.format(".2f")(d); // Show two decimal places for values <1
-        }
-        return d3.format(".0f")(d); // Otherwise, show integer ticks
+  <script>
+    d3.csv("NVDA.csv", function(data) {
+      data.forEach(function(d) {
+        d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
+        d.Close = +d.Close;
+        d.Open = +d.Open;
+        d.High = +d.High;
+        d.Low = +d.Low;
+        d.Volume = +d.Volume;
       });
-  }
 
-  const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      data = data.filter(function(d) {
+        return d.Date && d.Close && !isNaN(d.Close);
+      });
 
-  const g = svg.append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+      const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
 
-  g.append("g").attr("class", "y axis").call(yAxis)
-    .append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", -40)
-    .attr("x", -innerHeight / 2)
-    .style("text-anchor", "middle")
-    .attr("class", "axis-label")
-    .text(dataType === "Volume" ? "Volume" : "Stock Price");
+      // Populate dropdowns
+      const startYearSelect = d3.select("#startYear");
+      const endYearSelect = d3.select("#endYear");
 
-  g.append("g").attr("class", "x axis")
-    .attr("transform", `translate(0,${innerHeight})`)
-    .call(xAxis)
-    .append("text")
-    .attr("x", innerWidth / 2)
-    .attr("y", 40)
-    .style("text-anchor", "middle")
-    .attr("class", "axis-label")
-    .text("Date");
+      allYears.forEach(year => {
+        startYearSelect.append("option").attr("value", year).text(year);
+        endYearSelect.append("option").attr("value", year).text(year);
+      });
 
-  // Add vertical grid lines
-  g.selectAll(".x-grid-line")
-    .data(xScale.ticks(10))
-    .enter().append("line")
-    .attr("class", "grid-line")
-    .attr("x1", d => xScale(d))
-    .attr("x2", d => xScale(d))
-    .attr("y1", 0)
-    .attr("y2", innerHeight);
+      startYearSelect.property("value", allYears[0]);
+      endYearSelect.property("value", allYears[allYears.length - 1]);
 
-  const line = d3.svg.line()
-    .x(d => xScale(d.Date))
-    .y(d => yScale(d[dataType]));
+      // Initial chart rendering with "Close"
+      const dataTypeSelect = d3.select("#dataType");
+      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close", "linear");
 
-  g.append("path")
-    .datum(filteredData)
-    .attr("class", "line")
-    .attr("d", line);
-}
+      // Update chart on dropdown change
+      d3.selectAll("#startYear, #endYear, #dataType, #scaleType").on("change", function() {
+        const startYear = +startYearSelect.property("value");
+        const endYear = +endYearSelect.property("value");
+        const dataType = dataTypeSelect.property("value");
+        const scaleType = d3.select("#scaleType").property("value");
+
+        if (startYear > endYear) {
+          alert("Start year must be less than or equal to end year.");
+          return;
+        }
+
+        updateChart(data, startYear, endYear, dataType, scaleType);
+      });
+    });
+
+    function updateChart(data, startYear, endYear, dataType, scaleType) {
+      const svg = d3.select("#chart");
+      svg.selectAll("*").remove();
+
+      const width = +svg.attr("width");
+      const height = +svg.attr("height");
+      const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+
+      const filteredData = data.filter(d => {
+        const year = d.Date.getFullYear();
+        return year >= startYear && year <= endYear;
+      });
+
+      if (filteredData.length === 0) {
+        svg.append("text")
+          .attr("x", width / 2)
+          .attr("y", height / 2)
+          .attr("text-anchor", "middle")
+          .text("No data available for the selected period.");
+        return;
+      }
+
+      const xScale = d3.time.scale()
+        .domain(d3.extent(filteredData, d => d.Date))
+        .range([0, innerWidth]);
+
+      let yScale;
+      let yAxis;
+
+      if (scaleType === "linear") {
+        yScale = d3.scale.linear()
+          .domain([0, d3.max(filteredData, d => d[dataType])])
+          .range([innerHeight, 0])
+          .nice();
+        
+        yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .ticks(6)
+          .tickFormat(d3.format(".2f")); // Format for linear axis to show decimals
+      } else {
+        yScale = d3.scale.log()
+          .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
+          .range([innerHeight, 0])
+          .nice();
+
+        const logTicks = generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]));
+
+        yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .tickValues(logTicks)
+          .tickFormat(function(d) {
+            if (d < 1) {
+              return d3.format(".2f")(d); // Show two decimal places for values <1
+            }
+            return d3.format(".0f")(d); // Otherwise, show integer ticks
+          });
+      }
+
+      const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+      const g = svg.append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      g.append("g").attr("class", "y axis").call(yAxis)
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -40)
+        .attr("x", -innerHeight / 2)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text(dataType === "Volume" ? "Volume" : "Stock Price");
+
+      g.append("g").attr("class", "x axis")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(xAxis)
+        .append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Date");
+
+      // Add vertical grid lines
+      g.selectAll(".x-grid-line")
+        .data(xScale.ticks(10))
+        .enter().append("line")
+        .attr("class", "grid-line")
+        .attr("x1", d => xScale(d))
+        .attr("x2", d => xScale(d))
+        .attr("y1", 0)
+        .attr("y2", innerHeight);
+
+      const line = d3.svg.line()
+        .x(d => xScale(d.Date))
+        .y(d => yScale(d[dataType]));
+
+      g.append("path")
+        .datum(filteredData)
+        .attr("class", "line")
+        .attr("d", line);
+    }
+
+    // Function to generate log ticks
+    function generateLogTicks(minValue, maxValue) {
+      const ticks = [];
+      const start = Math.floor(Math.log(minValue) / Math.LN10);
+      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
+
+      for (let i = start; i <= end; i++) {
+        const base = Math.pow(10, i);
+        for (let j = 1; j <= 9; j++) { // Reduce to major powers of 10
+          const value = base * j;
+          if (value >= minValue && value <= maxValue) {
+            ticks.push(value);
+          }
+        }
+      }
+
+      return ticks;
+    }
+  </script>
+</body>
+</html>
