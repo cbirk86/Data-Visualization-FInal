@@ -116,11 +116,14 @@
         .nice();
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      
+      // Adjust y-axis tick labels to prevent overlap
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
         .tickFormat(d3.format(",.0f"))
-        .ticks(6);
+        .ticks(6) // Control the number of ticks shown
+        .tickValues(d3.range(Math.floor(d3.min(filteredData, d => d.Close)), Math.ceil(d3.max(filteredData, d => d.Close)), Math.ceil((d3.max(filteredData, d => d.Close) - d3.min(filteredData, d => d.Close)) / 6)));
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
