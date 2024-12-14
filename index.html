@@ -152,11 +152,16 @@
           .range([innerHeight, 0])
           .nice();
         
-        // Dynamically set ticks for log scale
+        // Dynamically set ticks for log scale with better control for <1 range
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
-          .tickFormat(d3.format(",.0f"))
+          .tickFormat(d => {
+            if (d < 1) {
+              return d3.format(".2f")(d); // Show two decimal places for values <1
+            }
+            return d3.format(".0f")(d); // Otherwise, show integer ticks
+          })
           .tickValues(generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]))); // Use custom tick generation for better readability
       }
 
@@ -209,6 +214,15 @@
           }
         }
       }
+
+      // Add values <1 with reasonable intervals and decimal format
+      for (let i = 1; i <= 5; i++) {
+        const value = i * 0.1;
+        if (value >= minValue && value <= maxValue) {
+          ticks.push(value);
+        }
+      }
+
       return ticks;
     }
   </script>
