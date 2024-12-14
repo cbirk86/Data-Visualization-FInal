@@ -44,6 +44,12 @@
 
     <label for="endYear">End Year:</label>
     <select id="endYear"></select>
+
+    <label for="scaleType">Scale Type:</label>
+    <select id="scaleType">
+      <option value="log">Logarithmic</option>
+      <option value="linear">Linear</option>
+    </select>
   </div>
 
   <svg id="chart" width="1600" height="700"></svg> <!-- Chart size -->
@@ -74,21 +80,23 @@
       endYearSelect.property("value", allYears[allYears.length - 1]);
 
       // Initial chart rendering
-      updateChart(data, allYears[0], allYears[allYears.length - 1]);
+      updateChart(data, allYears[0], allYears[allYears.length - 1], "log");
 
       // Update chart on dropdown change
-      d3.selectAll("#startYear, #endYear").on("change", function() {
+      d3.selectAll("#startYear, #endYear, #scaleType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
+        const scaleType = d3.select("#scaleType").property("value");
+
         if (startYear > endYear) {
           alert("Start year must be less than or equal to end year.");
           return;
         }
-        updateChart(data, startYear, endYear);
+        updateChart(data, startYear, endYear, scaleType);
       });
     });
 
-    function updateChart(data, startYear, endYear) {
+    function updateChart(data, startYear, endYear, scaleType) {
       const svg = d3.select("#chart");
       svg.selectAll("*").remove();
 
@@ -116,21 +124,31 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
-      const yScale = d3.scale.log()
-        .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
-        .range([innerHeight, 0])
-        .nice();
+      // Create the yScale based on the selected scale type
+      let yScale;
+      if (scaleType === "log") {
+        yScale = d3.scale.log()
+          .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
+          .range([innerHeight, 0])
+          .nice();
+      } else {
+        yScale = d3.scale.linear()
+          .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
+          .range([innerHeight, 0])
+          .nice();
+      }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
-      // Manually specify more y-axis tick values
-      const yTickValues = [1, 5, 10, 50, 100, 500, 1000, 5000, 10000]; // More y-axis labels
+      // Define y-axis tick values for log scale
+      const yTickValues = scaleType === "log" ? [1, 5, 10, 50, 100, 500, 1000, 5000, 10000] : null;
+
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
-        .tickValues(yTickValues)  // Use predefined tick values
+        .tickValues(yTickValues)  // Use predefined tick values for log scale
         .tickFormat(d3.format(",.0f"))
-        .tickPadding(10);  // Increased padding between ticks
+        .tickPadding(10);
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -142,16 +160,7 @@
         .attr("x", -innerHeight / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
-        .text("Stock Price (Logarithmic)");
-
-      // Add a label for the minimum value (which is the smallest visible value in the log scale)
-      const minValue = d3.min(filteredData, d => d.Close);
-      g.append("text")
-        .attr("x", -innerHeight / 2)
-        .attr("y", innerHeight + 30)
-        .style("text-anchor", "middle")
-        .attr("class", "axis-label")
-        .text(`Min Value: ${minValue}`);
+        .text("Stock Price");
 
       g.append("g").attr("class", "x axis")
         .attr("transform", `translate(0,${innerHeight})`)
