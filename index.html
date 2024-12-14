@@ -8,6 +8,7 @@
   <style>
     body {
       background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
     }
     .line {
       fill: none;
@@ -29,6 +30,12 @@
     h1 {
       text-align: center;
       font-weight: bold;
+    }
+    .year-line {
+      fill: none;
+      stroke: lightgray;
+      stroke-width: 0.5;
+      stroke-dasharray: 2, 2; /* Dotted line */
     }
   </style>
 </head>
@@ -130,12 +137,10 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
-      // Decide which y-scale to use based on selected data
       let yScale;
       let yAxis;
 
       if (dataType === "Volume") {
-        // For volume, use a linear scale
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d.Volume)])
           .range([innerHeight, 0])
@@ -144,25 +149,23 @@
           .scale(yScale)
           .orient("left")
           .tickFormat(d3.format(",.0f"))
-          .ticks(6); // Set a reasonable number of ticks for volume
+          .ticks(6);
       } else {
-        // For prices, use a logarithmic scale
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
         
-        // Dynamically set ticks for log scale with better control for <1 range
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
           .tickFormat(d => {
             if (d < 1) {
-              return d3.format(".2f")(d); // Show two decimal places for values <1
+              return d3.format(".2f")(d);
             }
-            return d3.format(".0f")(d); // Otherwise, show integer ticks
+            return d3.format(".0f")(d);
           })
-          .tickValues(generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]))); // Use custom tick generation for better readability
+          .tickValues(generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])));
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -189,6 +192,18 @@
         .attr("class", "axis-label")
         .text("Date");
 
+      // Add vertical lines at each year
+      const years = Array.from(new Set(filteredData.map(d => d.Date.getFullYear()))).sort();
+      years.forEach(year => {
+        g.append("line")
+          .attr("class", "year-line")
+          .attr("x1", xScale(new Date(year, 0, 1)))
+          .attr("x2", xScale(new Date(year, 11, 31)))
+          .attr("y1", 0)
+          .attr("y2", 0)
+          .attr("transform", `translate(0,${innerHeight})`);
+      });
+
       const line = d3.svg.line()
         .x(d => xScale(d.Date))
         .y(d => yScale(d[dataType]));
@@ -199,7 +214,6 @@
         .attr("d", line);
     }
 
-    // Function to dynamically generate log scale tick values based on data range
     function generateLogTicks(minValue, maxValue) {
       const ticks = [];
       const start = Math.floor(Math.log(minValue) / Math.LN10);
@@ -207,7 +221,7 @@
 
       for (let i = start; i <= end; i++) {
         const base = Math.pow(10, i);
-        for (let j = 1; j <= 5; j++) {  // Reduced number of steps for cleaner ticks at the lower range
+        for (let j = 1; j <= 5; j++) {
           const value = base * j;
           if (value >= minValue && value <= maxValue) {
             ticks.push(value);
@@ -215,7 +229,6 @@
         }
       }
 
-      // Add values <1 with reasonable intervals and decimal format
       for (let i = 1; i <= 5; i++) {
         const value = i * 0.1;
         if (value >= minValue && value <= maxValue) {
