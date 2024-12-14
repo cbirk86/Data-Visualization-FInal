@@ -133,8 +133,8 @@
           .range([innerHeight, 0])
           .nice();
 
-        // Define tick values for log scale, including 0.1 and 1 (also adding more values)
-        yTickValues = [0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
+        // Define tick values for log scale, including 0.1 and 0.01
+        yTickValues = [0.01, 0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
       } else {
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d.Close)]) // Ensure 0 is included in linear scale
@@ -150,7 +150,7 @@
         .scale(yScale)
         .orient("left")
         .tickValues(yTickValues)  // Use predefined tick values
-        .tickFormat(d3.format(",.0f"))
+        .tickFormat(d3.format(".2f"))  // Ensures two decimal places
         .tickPadding(10);
 
       const g = svg.append("g")
