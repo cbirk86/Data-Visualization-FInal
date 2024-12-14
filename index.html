@@ -34,7 +34,7 @@
       fill: none;
       stroke: black;
       stroke-width: 0.5;
-      stroke-dasharray: 2, 2; /* Dashed grid lines */
+      stroke-dasharray: 2, 2;
     }
   </style>
 </head>
@@ -143,6 +143,7 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
+      // Decide which y-scale to use based on selected data and scale type
       let yScale;
       let yAxis;
 
@@ -156,8 +157,9 @@
           .scale(yScale)
           .orient("left")
           .ticks(6)
-          .tickFormat(d3.format(".2f")); // Format for linear axis to show decimals
+          .tickFormat(d3.format(".2f"));
       } else {
+        // Logarithmic scale with refined tick generation
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
@@ -171,9 +173,9 @@
           .tickValues(logTicks)
           .tickFormat(function(d) {
             if (d < 1) {
-              return d3.format(".2f")(d); // Show two decimal places for values <1
+              return d3.format(".2f")(d); // Show two decimal places for values < 1
             }
-            return d3.format(".0f")(d); // Otherwise, show integer ticks
+            return d3.format(".0f")(d); // Show integer ticks for values >= 1
           });
       }
 
