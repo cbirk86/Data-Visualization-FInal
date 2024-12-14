@@ -164,7 +164,9 @@
           .scale(yScale)
           .orient("left")
           .ticks(6)
-          .tickFormat(d3.format(".2f"));
+          .tickFormat(function(d) {
+            return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d); // Show decimals for <1 and integers for >=1
+          });
       } else {
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
