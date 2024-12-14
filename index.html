@@ -40,7 +40,7 @@
     <select id="endYear"></select>
   </div>
 
-  <svg id="chart" width="1500" height="600"></svg> <!-- Increased size -->
+  <svg id="chart" width="2000" height="800"></svg> <!-- Increased size -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -117,12 +117,14 @@
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
       
-      // Adjusting tick spacing for the logarithmic scale (setting 6 ticks)
+      // Manually specify tick values using logarithmic steps
+      const yTickValues = [1, 10, 100, 1000, 10000, 100000]; // Adjust this array for your dataset
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
+        .tickValues(yTickValues)  // Use predefined tick values
         .tickFormat(d3.format(",.0f"))
-        .ticks(6);  // Set number of ticks to 6, you can adjust this further if needed
+        .tickPadding(15);  // Increase the padding between ticks
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
