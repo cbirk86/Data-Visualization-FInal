@@ -58,7 +58,7 @@
     d3.csv("NVDA.csv", function(data) {
       data.forEach(function(d) {
         d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
-        d.Close = Math.max(0.01, +d.Close);
+        d.Close = Math.max(0.01, +d.Close); // Prevent zero or negative stock prices
       });
 
       data = data.filter(function(d) {
@@ -133,8 +133,8 @@
           .range([innerHeight, 0])
           .nice();
 
-        // Define tick values excluding 0 (log scale can't include 0)
-        yTickValues = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
+        // Define tick values for log scale, including 0.1 and 1 (also adding more values)
+        yTickValues = [0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
       } else {
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d.Close)]) // Ensure 0 is included in linear scale
