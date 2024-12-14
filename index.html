@@ -7,7 +7,7 @@
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
-      background-color: #f0f0f0; /* Set background color of the site to gray */
+      background-color: #f0f0f0;
     }
     .line {
       fill: none;
@@ -132,25 +132,33 @@
 
       // Decide which y-scale to use based on selected data
       let yScale;
+      let yAxis;
+
       if (dataType === "Volume") {
+        // For volume, use a linear scale
         yScale = d3.scale.linear()
           .domain([0, d3.max(filteredData, d => d.Volume)])
           .range([innerHeight, 0])
           .nice();
+        yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .tickFormat(d3.format(",.0f"))
+          .ticks(6); // Set the number of ticks
       } else {
+        // For prices, use a logarithmic scale
         yScale = d3.scale.log()
-          .domain([d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])])
+          .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
+        yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .tickFormat(d3.format(",.0f"))
+          .ticks(6); // Set the number of ticks
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-
-      const yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient("left")
-        .tickFormat(d3.format(",.0f"))
-        .ticks(6);
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
