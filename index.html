@@ -32,9 +32,9 @@
     }
     .grid-line {
       fill: none;
-      stroke: black; /* Color of the grid lines */
+      stroke: black;
       stroke-width: 0.5;
-      stroke-dasharray: 2, 2; /* Dotted lines */
+      stroke-dasharray: 2, 2;
     }
   </style>
 </head>
@@ -158,17 +158,20 @@
           .orient("left")
           .ticks(6);
       } else {
+        // Logarithmic scale with refined tick generation
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
 
-        // Adjust ticks for logarithmic scale to reduce clutter
+        // Refined ticks for the logarithmic scale
+        const logTicks = generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]));
+
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
-          .tickFormat(d => d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d))
-          .ticks(6); // Adjusted the number of ticks for readability
+          .tickValues(logTicks)
+          .tickFormat(d3.format(".0f"));
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -207,7 +210,7 @@
 
       // Add horizontal grid lines
       g.selectAll(".y-grid-line")
-        .data(yScale.ticks(6)) // Adjusted the tick count for readability
+        .data(yScale.ticks(6))
         .enter().append("line")
         .attr("class", "grid-line")
         .attr("x1", 0)
@@ -223,6 +226,25 @@
         .datum(filteredData)
         .attr("class", "line")
         .attr("d", line);
+    }
+
+    // Generate refined logarithmic ticks
+    function generateLogTicks(minValue, maxValue) {
+      const ticks = [];
+      const start = Math.floor(Math.log(minValue) / Math.LN10);
+      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
+
+      for (let i = start; i <= end; i++) {
+        const base = Math.pow(10, i);
+        for (let j = 1; j <= 9; j++) { // Reduce to major powers of 10
+          const value = base * j;
+          if (value >= minValue && value <= maxValue) {
+            ticks.push(value);
+          }
+        }
+      }
+
+      return ticks;
     }
   </script>
 </body>
