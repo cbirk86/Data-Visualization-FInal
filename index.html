@@ -36,10 +36,14 @@
       stroke-width: 0.5;
       stroke-dasharray: 2, 2;
     }
+    #documentation-link {
+      text-align: center;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>Interactive Stock Chart</h1>
+  <h1>Interactive Nvidia Stock Chart</h1>
 
   <div id="controls">
     <label for="startYear">Start Year:</label>
@@ -65,6 +69,10 @@
   </div>
 
   <svg id="chart" width="1600" height="700"></svg>
+
+  <div id="documentation-link">
+    <a href="documentation.html">Go to Documentation</a>
+  </div>
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -143,7 +151,6 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
-      // Decide which y-scale to use based on selected data and scale type
       let yScale;
       let yAxis;
 
@@ -152,14 +159,13 @@
           .domain([0, d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
-        
+
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
           .ticks(6)
           .tickFormat(d3.format(".2f"));
       } else {
-        // Logarithmic scale with refined tick generation
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
@@ -172,10 +178,7 @@
           .orient("left")
           .tickValues(logTicks)
           .tickFormat(function(d) {
-            if (d < 1) {
-              return d3.format(".2f")(d); // Show two decimal places for values < 1
-            }
-            return d3.format(".0f")(d); // Show integer ticks for values >= 1
+            return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d); // Show decimals for <1 and integers for >=1
           });
       }
 
@@ -203,7 +206,6 @@
         .attr("class", "axis-label")
         .text("Date");
 
-      // Add vertical grid lines
       g.selectAll(".x-grid-line")
         .data(xScale.ticks(10))
         .enter().append("line")
@@ -223,7 +225,6 @@
         .attr("d", line);
     }
 
-    // Function to generate log ticks
     function generateLogTicks(minValue, maxValue) {
       const ticks = [];
       const start = Math.floor(Math.log(minValue) / Math.LN10);
@@ -231,7 +232,7 @@
 
       for (let i = start; i <= end; i++) {
         const base = Math.pow(10, i);
-        for (let j = 1; j <= 9; j++) { // Reduce to major powers of 10
+        for (let j = 1; j <= 9; j++) {
           const value = base * j;
           if (value >= minValue && value <= maxValue) {
             ticks.push(value);
