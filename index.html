@@ -1,273 +1,230 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <script src="https://d3js.org/d3.v3.min.js"></script>
-    <style>
-      html, body {
-        background-color: gray;
-        margin: 0;
-        padding: 0;
-      }
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Candlestick Chart</title>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <style>
+    /* Add custom styling here */
+    .candlestick.up {
+      fill: green;
+    }
+    .candlestick.down {
+      fill: red;
+    }
+    .axis-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    #chart2 {
+      margin-top: 100px; /* This will add space between the charts */
+    }
+  </style>
+</head>
+<body>
 
-      .candlestick {
-        stroke-width: 1px;
-      }
+  <h1>Stock Candlestick Charts</h1>
+ <p> Test 21</p>
+  <!-- Dropdown for year selection -->
+  <select id="yearSelect">
+    <option value="2024">2024</option>
+    <option value="2023">2023</option>
+    <option value="2022">2022</option>
+    <!-- Add more options as needed -->
+  </select>
 
-      .candlestick.up {
-        fill: #4bda00; /* Bullish (close > open) */
-      }
+  <svg id="chart1" width="800" height="400"></svg> <!-- First Chart -->
+  <svg id="chart2" width="800" height="400"></svg> <!-- Second Chart -->
 
-      .candlestick.down {
-        fill: #ff5733; /* Bearish (close < open) */
-      }
-
-      .axis path,
-      .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-      }
-
-      svg {
-        background-color: lightgray;
-      }
-
-      /* Axis label styling */
-      .axis-label {
-        font-size: 14px;
-        fill: black;  /* Change label color to black */
-      }
-
-      /* Dropdown styling */
-      select {
-        margin: 10px;
-        padding: 5px;
-        font-size: 16px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <h1>Nvidia Stock Price Candlestick Chart</h1>
-    <p>Test 20</p>
-    
-    <!-- Dropdown to select the year -->
-    <label for="yearSelect">Select Year: </label>
-    <select id="yearSelect">
-      <option value="2024">2024</option>
-      <option value="2023">2023</option>
-      <option value="2022">2022</option>
-      <option value="2021">2021</option>
-      <option value="2020">2020</option>
-      <option value="2019">2019</option>
-      <option value="2018">2018</option>
-      <option value="2017">2017</option>
-      <option value="2016">2016</option>
-      <option value="2015">2015</option>
-      <option value="2014">2014</option>
-      <option value="2013">2013</option>
-      <option value="2012">2012</option>
-      <option value="2011">2011</option>
-      <option value="2010">2010</option>
-      <option value="2009">2009</option>
-      <option value="2008">2008</option>
-      <option value="2007">2007</option>
-      <option value="2006">2006</option>
-      <option value="2005">2005</option>
-      <option value="2004">2004</option>
-      <option value="2003">2003</option>
-      <option value="2002">2002</option>
-      <option value="2001">2001</option>
-      <option value="2000">2000</option>
-      <option value="1999">1999</option>
-    </select>
-
-    <!-- First Chart (Last 5 Years) -->
-    <svg id="chart1" width="800" height="400"></svg>
-
-    <!-- Second Chart (Yearly Chart) -->
-    <svg id="chart2" width="800" height="400" style="margin-top: 50px;"></svg>
-
-    <script type="text/javascript">
-      var dataset;
-
-      d3.csv("NVDA.csv", function(data) {
-        data.forEach(function(d) {
-          d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
-          d.Open = +d.Open;
-          d.Close = +d.Close;
-          d.High = +d.High;
-          d.Low = +d.Low;
-        });
-
-        // Filter out invalid data
-        data = data.filter(function(d) {
-          return d.Date && d.Open && d.Close && d.High && d.Low && !isNaN(d.Open) && !isNaN(d.Close) && !isNaN(d.High) && !isNaN(d.Low);
-        });
-
-        dataset = data; // Store the dataset globally
-
-        // Call the charts for the last 5 years
-        createCandlestickChart5Years(dataset);
-        createCandlestickChartYear(dataset, "2024"); // Initially display 2024 data
-
-        // Handle year selection
-        d3.select("#yearSelect").on("change", function() {
-          var selectedYear = this.value;
-          createCandlestickChartYear(dataset, selectedYear);
-        });
+  <script>
+    d3.csv("NVDA.csv", function(data) {
+      data.forEach(function(d) {
+        d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
+        d.Open = +d.Open;
+        d.Close = +d.Close;
+        d.High = +d.High;
+        d.Low = +d.Low;
       });
 
-      function createCandlestickChart5Years(dataset) {
-        var svg = d3.select("#chart1");
-        svg.selectAll("*").remove(); // Clear previous chart
-        var width = +svg.attr("width");
-        var height = +svg.attr("height");
-        var margin = { top: 20, right: 30, bottom: 50, left: 50 };
-        var innerWidth = width - margin.left - margin.right;
-        var innerHeight = height - margin.top - margin.bottom;
+      // Filter out invalid data
+      data = data.filter(function(d) {
+        return d.Date && d.Open && d.Close && d.High && d.Low && !isNaN(d.Open) && !isNaN(d.Close) && !isNaN(d.High) && !isNaN(d.Low);
+      });
 
-        var xScale = d3.time.scale()
-          .domain(d3.extent(dataset, function(d) { return d.Date; }))
-          .range([0, innerWidth]);
+      dataset = data; // Store the dataset globally
 
-        var yScale = d3.scale.log()
-          .domain([d3.min(dataset, function(d) { return d.Low; }), d3.max(dataset, function(d) { return d.High; })])
-          .range([innerHeight, 0])
-          .base(10)
-          .clamp(true);
+      // Get the current date and filter out data from the last 5 years
+      var currentDate = new Date();
+      var last5YearsData = dataset.filter(function(d) {
+        return d.Date >= new Date(currentDate.getFullYear() - 5, currentDate.getMonth(), currentDate.getDate());
+      });
 
-        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+      // Call the charts for the last 5 years
+      createCandlestickChart5Years(last5YearsData);
+      createCandlestickChartYear(dataset, "2024"); // Initially display 2024 data
 
-        var g = svg.append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      // Handle year selection
+      d3.select("#yearSelect").on("change", function() {
+        var selectedYear = this.value;
+        createCandlestickChartYear(dataset, selectedYear);
+      });
+    });
 
-        // Y Axis
-        g.append("g")
-          .attr("class", "y axis")
-          .call(yAxis)
-          .append("text") // Y axis label
-          .attr("transform", "rotate(-90)")
-          .attr("y", -40)
-          .attr("x", -height / 2)
-          .style("text-anchor", "middle")
-          .attr("class", "axis-label")
-          .text("Stock Price (Log scale)");
+    function createCandlestickChart5Years(last5YearsData) {
+      var svg = d3.select("#chart1");
+      svg.selectAll("*").remove(); // Clear previous chart
 
-        // X Axis
-        g.append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + innerHeight + ")")
-          .call(xAxis)
-          .append("text") // X axis label
-          .attr("x", innerWidth / 2)
-          .attr("y", 40)
-          .style("text-anchor", "middle")
-          .attr("class", "axis-label")
-          .text("Date");
+      var width = +svg.attr("width");
+      var height = +svg.attr("height");
+      var margin = { top: 20, right: 30, bottom: 50, left: 50 };
+      var innerWidth = width - margin.left - margin.right;
+      var innerHeight = height - margin.top - margin.bottom;
 
-        // Candlesticks
-        g.selectAll(".candlestick")
-          .data(dataset)
-          .enter().append("rect")
-          .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
-          .attr("x", function(d) { return xScale(d.Date); })
-          .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
-          .attr("width", Math.floor(innerWidth / dataset.length))
-          .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
+      var xScale = d3.time.scale()
+        .domain(d3.extent(last5YearsData, function(d) { return d.Date; }))
+        .range([0, innerWidth]);
 
-        // High-Low lines
-        g.selectAll(".highlow")
-          .data(dataset)
-          .enter().append("line")
-          .attr("class", "highlow")
-          .attr("x1", function(d) { return xScale(d.Date); })
-          .attr("x2", function(d) { return xScale(d.Date); })
-          .attr("y1", function(d) { return yScale(d.High); })
-          .attr("y2", function(d) { return yScale(d.Low); })
-          .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
-          .attr("stroke-width", 1);
-      }
+      var yScale = d3.scale.log()
+        .domain([d3.min(last5YearsData, function(d) { return d.Low; }), d3.max(last5YearsData, function(d) { return d.High; })])
+        .range([innerHeight, 0])
+        .base(10)
+        .clamp(true);
 
-      function createCandlestickChartYear(dataset, year) {
-        var svg = d3.select("#chart2");
-        svg.selectAll("*").remove(); // Clear the chart before updating it
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-        var width = +svg.attr("width");
-        var height = +svg.attr("height");
-        var margin = { top: 20, right: 30, bottom: 50, left: 50 };
-        var innerWidth = width - margin.left - margin.right;
-        var innerHeight = height - margin.top - margin.bottom;
+      var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        // Filter data for the selected year
-        var yearData = dataset.filter(function(d) {
-          return d.Date.getFullYear() == year;
-        });
+      // Y Axis
+      g.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text") // Y axis label
+        .attr("transform", "rotate(-90)")
+        .attr("y", -40)
+        .attr("x", -height / 2)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Stock Price (Log scale)");
 
-        var xScale = d3.time.scale()
-          .domain(d3.extent(yearData, function(d) { return d.Date; }))
-          .range([0, innerWidth]);
+      // X Axis
+      g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + innerHeight + ")")
+        .call(xAxis)
+        .append("text") // X axis label
+        .attr("x", innerWidth / 2)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Date");
 
-        var yScale = d3.scale.log()
-          .domain([d3.min(yearData, function(d) { return d.Low; }), d3.max(yearData, function(d) { return d.High; })])
-          .range([innerHeight, 0])
-          .base(10)
-          .clamp(true);
+      // Candlesticks for the last 5 years
+      g.selectAll(".candlestick")
+        .data(last5YearsData)
+        .enter().append("rect")
+        .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
+        .attr("x", function(d) { return xScale(d.Date); })
+        .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
+        .attr("width", Math.floor(innerWidth / last5YearsData.length)) // Use filtered data here
+        .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
 
-        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+      // High-Low lines for the last 5 years
+      g.selectAll(".highlow")
+        .data(last5YearsData)
+        .enter().append("line")
+        .attr("class", "highlow")
+        .attr("x1", function(d) { return xScale(d.Date); })
+        .attr("x2", function(d) { return xScale(d.Date); })
+        .attr("y1", function(d) { return yScale(d.High); })
+        .attr("y2", function(d) { return yScale(d.Low); })
+        .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
+        .attr("stroke-width", 1);
+    }
 
-        var g = svg.append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    function createCandlestickChartYear(dataset, year) {
+      var svg = d3.select("#chart2");
+      svg.selectAll("*").remove(); // Clear previous chart
 
-        // Y Axis
-        g.append("g")
-          .attr("class", "y axis")
-          .call(yAxis)
-          .append("text") // Y axis label
-          .attr("transform", "rotate(-90)")
-          .attr("y", -40)
-          .attr("x", -height / 2)
-          .style("text-anchor", "middle")
-          .attr("class", "axis-label")
-          .text("Stock Price (Log scale)");
+      var width = +svg.attr("width");
+      var height = +svg.attr("height");
+      var margin = { top: 20, right: 30, bottom: 50, left: 50 };
+      var innerWidth = width - margin.left - margin.right;
+      var innerHeight = height - margin.top - margin.bottom;
 
-        // X Axis
-        g.append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(0," + innerHeight + ")")
-          .call(xAxis)
-          .append("text") // X axis label
-          .attr("x", innerWidth / 2)
-          .attr("y", 40)
-          .style("text-anchor", "middle")
-          .attr("class", "axis-label")
-          .text("Date");
+      // Add margin-top for the second chart dynamically
+      svg.style("margin-top", "100px");  // Add space before the second chart
 
-        // Candlesticks for the selected year
-        g.selectAll(".candlestick")
-          .data(yearData)
-          .enter().append("rect")
-          .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
-          .attr("x", function(d) { return xScale(d.Date); })
-          .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
-          .attr("width", Math.floor(innerWidth / yearData.length))
-          .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
+      // Filter data for the selected year
+      var yearData = dataset.filter(function(d) {
+        return d.Date.getFullYear() == year;
+      });
 
-        // High-Low lines for the selected year
-        g.selectAll(".highlow")
-          .data(yearData)
-          .enter().append("line")
-          .attr("class", "highlow")
-          .attr("x1", function(d) { return xScale(d.Date); })
-          .attr("x2", function(d) { return xScale(d.Date); })
-          .attr("y1", function(d) { return yScale(d.High); })
-          .attr("y2", function(d) { return yScale(d.Low); })
-          .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
-          .attr("stroke-width", 1);
-      }
-    </script>
-  </body>
+      var xScale = d3.time.scale()
+        .domain(d3.extent(yearData, function(d) { return d.Date; }))
+        .range([0, innerWidth]);
+
+      var yScale = d3.scale.log()
+        .domain([d3.min(yearData, function(d) { return d.Low; }), d3.max(yearData, function(d) { return d.High; })])
+        .range([innerHeight, 0])
+        .base(10)
+        .clamp(true);
+
+      var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+      var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+      var g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Y Axis
+      g.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .append("text") // Y axis label
+        .attr("transform", "rotate(-90)")
+        .attr("y", -40)
+        .attr("x", -height / 2)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Stock Price (Log scale)");
+
+      // X Axis
+      g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + innerHeight + ")")
+        .call(xAxis)
+        .append("text") // X axis label
+        .attr("x", innerWidth / 2)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Date");
+
+      // Candlesticks for the selected year
+      g.selectAll(".candlestick")
+        .data(yearData)
+        .enter().append("rect")
+        .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
+        .attr("x", function(d) { return xScale(d.Date); })
+        .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
+        .attr("width", Math.floor(innerWidth / yearData.length))
+        .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
+
+      // High-Low lines for the selected year
+      g.selectAll(".highlow")
+        .data(yearData)
+        .enter().append("line")
+        .attr("class", "highlow")
+        .attr("x1", function(d) { return xScale(d.Date); })
+        .attr("x2", function(d) { return xScale(d.Date); })
+        .attr("y1", function(d) { return yScale(d.High); })
+        .attr("y2", function(d) { return yScale(d.Low); })
+        .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
+        .attr("stroke-width", 1);
+    }
+  </script>
+
+</body>
 </html>
