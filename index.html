@@ -117,12 +117,12 @@
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
       
-      // Automatically adjusted ticks for the logarithmic scale
+      // Adjusting tick spacing for the logarithmic scale (setting 6 ticks)
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
         .tickFormat(d3.format(",.0f"))
-        .ticks(10); // Automatically adjusts tick spacing based on data
+        .ticks(6);  // Set number of ticks to 6, you can adjust this further if needed
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
