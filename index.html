@@ -3,24 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Stock Chart with Smoothed Volume Overlay</title>
+  <title>Interactive Stock Chart</title>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
-      background-color: #f0f0f0; /* Set background color of the entire page to gray */
-      margin: 0;
-      padding: 0;
+      background-color: #f0f0f0; /* Set background color of the site to gray */
     }
     .line {
       fill: none;
       stroke: limegreen;
       stroke-width: 2px;
-    }
-    .volume-line {
-      fill: none;
-      stroke: steelblue;
-      stroke-width: 2px;
-      stroke-dasharray: 5,5; /* Dash style for volume line */
     }
     .axis-label {
       font-size: 14px;
@@ -28,12 +20,11 @@
     }
     #chart {
       margin-left: 100px;
-      background-color: #d3d3d3; /* Set background color of the chart to a gray */
+      background-color: #e0e0e0;
     }
     #controls {
       text-align: center;
       margin: 20px;
-      background-color: #f0f0f0; /* Set background of the controls section to match the page */
     }
     h1 {
       text-align: center;
@@ -42,7 +33,7 @@
   </style>
 </head>
 <body>
-  <h1>Interactive Stock Chart with Smoothed Volume Overlay</h1>
+  <h1>Interactive Stock Chart</h1>
 
   <div id="controls">
     <label for="startYear">Start Year:</label>
@@ -51,25 +42,31 @@
     <label for="endYear">End Year:</label>
     <select id="endYear"></select>
 
-    <label for="scaleType">Scale Type:</label>
-    <select id="scaleType">
-      <option value="log">Logarithmic</option>
-      <option value="linear">Linear</option>
+    <label for="dataType">Select Data:</label>
+    <select id="dataType">
+      <option value="Close">Close</option>
+      <option value="Open">Open</option>
+      <option value="High">High</option>
+      <option value="Low">Low</option>
+      <option value="Volume">Volume</option>
     </select>
   </div>
 
-  <svg id="chart" width="1600" height="900"></svg> <!-- Chart size increased for volume line -->
+  <svg id="chart" width="1600" height="700"></svg>
 
   <script>
     d3.csv("NVDA.csv", function(data) {
       data.forEach(function(d) {
         d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
-        d.Close = Math.max(0.01, +d.Close); // Prevent zero or negative stock prices
-        d.Volume = +d.Volume; // Volume data
+        d.Close = +d.Close;
+        d.Open = +d.Open;
+        d.High = +d.High;
+        d.Low = +d.Low;
+        d.Volume = +d.Volume;
       });
 
       data = data.filter(function(d) {
-        return d.Date && d.Close && !isNaN(d.Close) && !isNaN(d.Volume);
+        return d.Date && d.Close && !isNaN(d.Close);
       });
 
       const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
@@ -86,30 +83,32 @@
       startYearSelect.property("value", allYears[0]);
       endYearSelect.property("value", allYears[allYears.length - 1]);
 
-      // Initial chart rendering
-      updateChart(data, allYears[0], allYears[allYears.length - 1], "log");
+      // Initial chart rendering with "Close"
+      const dataTypeSelect = d3.select("#dataType");
+      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close");
 
       // Update chart on dropdown change
-      d3.selectAll("#startYear, #endYear, #scaleType").on("change", function() {
+      d3.selectAll("#startYear, #endYear, #dataType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
-        const scaleType = d3.select("#scaleType").property("value");
+        const dataType = dataTypeSelect.property("value");
 
         if (startYear > endYear) {
           alert("Start year must be less than or equal to end year.");
           return;
         }
-        updateChart(data, startYear, endYear, scaleType);
+
+        updateChart(data, startYear, endYear, dataType);
       });
     });
 
-    function updateChart(data, startYear, endYear, scaleType) {
+    function updateChart(data, startYear, endYear, dataType) {
       const svg = d3.select("#chart");
       svg.selectAll("*").remove();
 
       const width = +svg.attr("width");
       const height = +svg.attr("height");
-      const margin = { top: 20, right: 30, bottom: 100, left: 70 }; // Increased bottom margin for volume line
+      const margin = { top: 20, right: 30, bottom: 50, left: 50 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
 
@@ -131,19 +130,18 @@
         .domain(d3.extent(filteredData, d => d.Date))
         .range([0, innerWidth]);
 
+      // Decide which y-scale to use based on selected data
       let yScale;
-      let yTickValues;
-      if (scaleType === "log") {
-        yScale = d3.scale.log()
-          .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
-          .range([innerHeight - 80, 0]) // Reduced height for volume line space
-          .nice();
-        yTickValues = [0.01, 0.1, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000];
-      } else {
+      if (dataType === "Volume") {
         yScale = d3.scale.linear()
-          .domain([0, d3.max(filteredData, d => d.Close)])
-          .range([innerHeight - 80, 0]);
-        yTickValues = d3.range(0, d3.max(filteredData, d => d.Close), 10);
+          .domain([0, d3.max(filteredData, d => d.Volume)])
+          .range([innerHeight, 0])
+          .nice();
+      } else {
+        yScale = d3.scale.log()
+          .domain([d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])])
+          .range([innerHeight, 0])
+          .nice();
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -151,9 +149,8 @@
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
-        .tickValues(yTickValues)
-        .tickFormat(d3.format(".2f"))
-        .tickPadding(10);
+        .tickFormat(d3.format(",.0f"))
+        .ticks(6);
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -161,61 +158,30 @@
       g.append("g").attr("class", "y axis").call(yAxis)
         .append("text")
         .attr("transform", "rotate(-90)")
-        .attr("y", -50)
+        .attr("y", -40)
         .attr("x", -innerHeight / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
-        .text("Stock Price");
+        .text(dataType === "Volume" ? "Volume" : "Stock Price");
+
+      g.append("g").attr("class", "x axis")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(xAxis)
+        .append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", 40)
+        .style("text-anchor", "middle")
+        .attr("class", "axis-label")
+        .text("Date");
 
       const line = d3.svg.line()
         .x(d => xScale(d.Date))
-        .y(d => yScale(d.Close));
-
-      // Apply cubic interpolation (smoothing) to the stock price line
-      const smoothedPriceData = d3.svg.line()
-        .x(d => xScale(d.Date))
-        .y(d => yScale(d.Close));
+        .y(d => yScale(d[dataType]));
 
       g.append("path")
         .datum(filteredData)
         .attr("class", "line")
-        .attr("d", smoothedPriceData);
-
-      // Volume line chart (overlay)
-      const volumeMax = d3.max(filteredData, d => d.Volume);
-      const volumeScale = d3.scale.linear()
-        .domain([0, volumeMax])
-        .range([innerHeight - 80, 0]); // Adjusted height for volume line space
-
-      const volumeLine = d3.svg.line()
-        .x(d => xScale(d.Date))
-        .y(d => volumeScale(d.Volume));
-
-      // Apply cubic interpolation (smoothing) to the volume line
-      const smoothedVolumeData = d3.svg.line()
-        .x(d => xScale(d.Date))
-        .y(d => volumeScale(d.Volume));
-
-      g.append("path")
-        .datum(filteredData)
-        .attr("class", "volume-line")
-        .attr("d", smoothedVolumeData);
-
-      // Volume y-axis (right side)
-      const volumeAxis = d3.svg.axis()
-        .scale(volumeScale)
-        .orient("right");
-
-      g.append("g").attr("class", "volume axis")
-        .attr("transform", `translate(${innerWidth}, 0)`)
-        .call(volumeAxis)
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -40)
-        .attr("x", innerHeight / 2)
-        .style("text-anchor", "middle")
-        .attr("class", "axis-label")
-        .text("Volume");
+        .attr("d", line);
     }
   </script>
 </body>
