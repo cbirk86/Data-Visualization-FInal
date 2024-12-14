@@ -17,25 +17,28 @@
       font-size: 14px;
       font-weight: bold;
     }
-    #chart2 {
-      margin-top: 100px; /* This will add space between the charts */
+    #chart1, #chart2 {
+      margin-left: 100px; /* Shift charts to the right */
+    }
+    #yearSelect {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
   <h1>Stock Candlestick Charts</h1>
-  <p> Test 22 </p>
-  <!-- Dropdown for year selection -->
+  <p1> Test 23</p1>
+  <svg id="chart1" width="1100" height="400"></svg> <!-- First Chart with increased width -->
+  <svg id="chart2" width="1100" height="400"></svg> <!-- Second Chart with increased width -->
+
+  <!-- Dropdown for year selection (moved after the second chart) -->
   <select id="yearSelect">
     <option value="2024">2024</option>
     <option value="2023">2023</option>
     <option value="2022">2022</option>
     <!-- Add more options as needed -->
   </select>
-
-  <svg id="chart1" width="1100" height="400"></svg> <!-- First Chart with increased width -->
-  <svg id="chart2" width="1100" height="400"></svg> <!-- Second Chart with increased width -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -85,11 +88,10 @@
         .domain(d3.extent(last5YearsData, function(d) { return d.Date; }))
         .range([0, innerWidth]);
 
-      var yScale = d3.scale.log()
+      var yScale = d3.scale.linear() // Changed to linear scale to avoid scientific notation
         .domain([d3.min(last5YearsData, function(d) { return d.Low; }), d3.max(last5YearsData, function(d) { return d.High; })])
         .range([innerHeight, 0])
-        .base(10)
-        .clamp(true);
+        .nice(); // "nice" rounds the axis to make the labels more readable
 
       var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
       var yAxis = d3.svg.axis().scale(yScale).orient("left");
@@ -107,7 +109,7 @@
         .attr("x", -height / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
-        .text("Stock Price (Log scale)");
+        .text("Stock Price");
 
       // X Axis
       g.append("g")
@@ -166,11 +168,10 @@
         .domain(d3.extent(yearData, function(d) { return d.Date; }))
         .range([0, innerWidth]);
 
-      var yScale = d3.scale.log()
+      var yScale = d3.scale.linear() // Changed to linear scale to avoid scientific notation
         .domain([d3.min(yearData, function(d) { return d.Low; }), d3.max(yearData, function(d) { return d.High; })])
         .range([innerHeight, 0])
-        .base(10)
-        .clamp(true);
+        .nice(); // "nice" rounds the axis to make the labels more readable
 
       var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
       var yAxis = d3.svg.axis().scale(yScale).orient("left");
@@ -188,7 +189,7 @@
         .attr("x", -height / 2)
         .style("text-anchor", "middle")
         .attr("class", "axis-label")
-        .text("Stock Price (Log scale)");
+        .text("Stock Price");
 
       // X Axis
       g.append("g")
