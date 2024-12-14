@@ -8,7 +8,7 @@
   <style>
     .line {
       fill: none;
-      stroke: steelblue;
+      stroke: limegreen;
       stroke-width: 2px;
     }
     .axis-label {
@@ -17,6 +17,7 @@
     }
     #chart {
       margin-left: 100px;
+      background-color: #e0e0e0;
     }
     #controls {
       text-align: center;
@@ -118,7 +119,8 @@
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
-        .tickFormat(d3.format(".2f"));
+        .tickFormat(d3.format(",.0f"))
+        .ticks(6);
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
