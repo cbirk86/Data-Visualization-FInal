@@ -166,19 +166,22 @@
           .ticks(6)
           .tickFormat(function(d) {
             if (dataType === "Volume") {
-              // Abbreviate the volume numbers
-              return d >= 1e9 ? d3.format(".1s")(d) : d >= 1e6 ? d3.format(".1s")(d) : d >= 1e3 ? d3.format(".1s")(d) : d3.format(".0f")(d);
+              // Abbreviate the volume numbers (K for thousands, M for millions, B for billions)
+              return d >= 1e9 ? d3.format(".1s")(d).replace('G', 'B') : 
+                     d >= 1e6 ? d3.format(".1s")(d).replace('M', 'M') : 
+                     d >= 1e3 ? d3.format(".1s")(d).replace('K', 'K') : 
+                     d3.format(".0f")(d);
             } else {
               return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d);
             }
           });
       } else {
         yScale = d3.scale.log()
-          .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
+          .domain([0.04, 100])
           .range([innerHeight, 0])
           .nice();
 
-        const logTicks = generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]));
+        const logTicks = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.1, 0.04]; // Custom intervals as per your request
 
         yAxis = d3.svg.axis()
           .scale(yScale)
@@ -230,24 +233,6 @@
         .datum(filteredData)
         .attr("class", "line")
         .attr("d", line);
-    }
-
-    function generateLogTicks(minValue, maxValue) {
-      const ticks = [];
-      const start = Math.floor(Math.log(minValue) / Math.LN10);
-      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
-
-      for (let i = start; i <= end; i++) {
-        const base = Math.pow(10, i);
-        for (let j = 1; j <= 9; j++) {
-          const value = base * j;
-          if (value >= minValue && value <= maxValue) {
-            ticks.push(value);
-          }
-        }
-      }
-
-      return ticks;
     }
   </script>
 </body>
