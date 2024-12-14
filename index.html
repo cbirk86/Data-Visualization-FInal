@@ -144,18 +144,20 @@
           .scale(yScale)
           .orient("left")
           .tickFormat(d3.format(",.0f"))
-          .ticks(5); // Reduced ticks for volume
+          .ticks(6); // Set a reasonable number of ticks for volume
       } else {
         // For prices, use a logarithmic scale
         yScale = d3.scale.log()
           .domain([Math.max(0.01, d3.min(filteredData, d => d[dataType])), d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
+        
+        // Dynamically set ticks for log scale
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
           .tickFormat(d3.format(",.0f"))
-          .ticks(5); // Reduced ticks for logarithmic scale
+          .tickValues(generateLogTicks(d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType]))); // Use custom tick generation for better readability
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -190,6 +192,24 @@
         .datum(filteredData)
         .attr("class", "line")
         .attr("d", line);
+    }
+
+    // Function to dynamically generate log scale tick values based on data range
+    function generateLogTicks(minValue, maxValue) {
+      const ticks = [];
+      const start = Math.floor(Math.log(minValue) / Math.LN10);
+      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
+
+      for (let i = start; i <= end; i++) {
+        const base = Math.pow(10, i);
+        for (let j = 1; j <= 10; j++) {
+          const value = base * j;
+          if (value >= minValue && value <= maxValue) {
+            ticks.push(value);
+          }
+        }
+      }
+      return ticks;
     }
   </script>
 </body>
