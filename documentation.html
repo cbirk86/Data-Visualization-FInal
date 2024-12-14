@@ -27,6 +27,9 @@
         Then I changed the elements of the chart. Originally it was just a chart of the closing price over time, but I decided to make it into a candlestick chart instead, which is a type of chart used to show opening and closing prices on each day. 
         This also didn't work because I found it was too cluttered and hard to interpret. So I instead decided to make an interactive chart that allows the user to look at any aspect of the dataset they want
         The new chart was a line chart of the closing price over time by default, but using a dropdown the user could choose to look at opening price, the high and low values, and the volume of shares traded on that day.
+        This was much better, as it allows the user to look at the information of their choosing. This also had problems because the stock value grew exponentially over time, so the earlier years were impossible to distinguish as a result.
+        To fix this I made the y axis scale logarithmically, to better show the increases over time. This didn't work for everything, for example volume, so I decided to add a drop down that allows the user to choose between logarithmic and linear scaling for the y axis.
+        The final feature I added was a year select feature. This let the user select a starting and 
       </p>
   </main>
 
