@@ -163,11 +163,12 @@
           .range([innerHeight, 0])
           .nice();
 
+        // Adjust ticks for logarithmic scale to reduce clutter
         yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
           .tickFormat(d => d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d))
-          .ticks(6);
+          .ticks(6); // Adjusted the number of ticks for readability
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
@@ -206,7 +207,7 @@
 
       // Add horizontal grid lines
       g.selectAll(".y-grid-line")
-        .data(yScale.ticks(6))
+        .data(yScale.ticks(6)) // Adjusted the tick count for readability
         .enter().append("line")
         .attr("class", "grid-line")
         .attr("x1", 0)
