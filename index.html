@@ -23,13 +23,22 @@
     #yearSelect {
       margin-top: 20px;
     }
+    h2 {
+      text-align: center;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-
+  <p> Test 24 </p>
   <h1>Stock Candlestick Charts</h1>
-  <p1> Test 23</p1>
+
+  <!-- Heading for first chart -->
+  <h2 id="chart1Heading">Nvidia Stock Price Last 5 Years</h2>
   <svg id="chart1" width="1100" height="400"></svg> <!-- First Chart with increased width -->
+
+  <!-- Heading for second chart -->
+  <h2 id="chart2Heading">Nvidia Stock Price in 2024</h2>
   <svg id="chart2" width="1100" height="400"></svg> <!-- Second Chart with increased width -->
 
   <!-- Dropdown for year selection (moved after the second chart) -->
@@ -63,18 +72,24 @@
         return d.Date >= new Date(currentDate.getFullYear() - 5, currentDate.getMonth(), currentDate.getDate());
       });
 
+      // Get the x-scale for both charts (based on the entire dataset)
+      var xScale = d3.time.scale()
+        .domain(d3.extent(dataset, function(d) { return d.Date; }))
+        .range([0, 1100]);
+
       // Call the charts for the last 5 years
-      createCandlestickChart5Years(last5YearsData);
-      createCandlestickChartYear(dataset, "2024"); // Initially display 2024 data
+      createCandlestickChart5Years(last5YearsData, xScale);
+      createCandlestickChartYear(dataset, "2024", xScale); // Initially display 2024 data
 
       // Handle year selection
       d3.select("#yearSelect").on("change", function() {
         var selectedYear = this.value;
-        createCandlestickChartYear(dataset, selectedYear);
+        createCandlestickChartYear(dataset, selectedYear, xScale);
+        document.getElementById("chart2Heading").textContent = "Nvidia Stock Price in " + selectedYear;
       });
     });
 
-    function createCandlestickChart5Years(last5YearsData) {
+    function createCandlestickChart5Years(last5YearsData, xScale) {
       var svg = d3.select("#chart1");
       svg.selectAll("*").remove(); // Clear previous chart
 
@@ -83,10 +98,6 @@
       var margin = { top: 20, right: 30, bottom: 50, left: 50 };
       var innerWidth = width - margin.left - margin.right + 200; // Increase width by 200 pixels
       var innerHeight = height - margin.top - margin.bottom;
-
-      var xScale = d3.time.scale()
-        .domain(d3.extent(last5YearsData, function(d) { return d.Date; }))
-        .range([0, innerWidth]);
 
       var yScale = d3.scale.linear() // Changed to linear scale to avoid scientific notation
         .domain([d3.min(last5YearsData, function(d) { return d.Low; }), d3.max(last5YearsData, function(d) { return d.High; })])
@@ -146,7 +157,7 @@
         .attr("stroke-width", 1);
     }
 
-    function createCandlestickChartYear(dataset, year) {
+    function createCandlestickChartYear(dataset, year, xScale) {
       var svg = d3.select("#chart2");
       svg.selectAll("*").remove(); // Clear previous chart
 
@@ -156,17 +167,10 @@
       var innerWidth = width - margin.left - margin.right + 200; // Increase width by 200 pixels
       var innerHeight = height - margin.top - margin.bottom;
 
-      // Add margin-top for the second chart dynamically
-      svg.style("margin-top", "100px");  // Add space before the second chart
-
       // Filter data for the selected year
       var yearData = dataset.filter(function(d) {
         return d.Date.getFullYear() == year;
       });
-
-      var xScale = d3.time.scale()
-        .domain(d3.extent(yearData, function(d) { return d.Date; }))
-        .range([0, innerWidth]);
 
       var yScale = d3.scale.linear() // Changed to linear scale to avoid scientific notation
         .domain([d3.min(yearData, function(d) { return d.Low; }), d3.max(yearData, function(d) { return d.High; })])
