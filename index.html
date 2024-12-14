@@ -56,12 +56,17 @@
   </div>
 
   <script>
+    // Load the data from CSV
     d3.csv("NVDA.csv", function(data) {
       data.forEach(function(d) {
         d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
         d.Close = Math.max(0.01, +d.Close);
+        d.Volume = +d.Volume;
+        d.Open = +d.Open;
+        d.High = +d.High;
       });
 
+      // Get all unique years from the data
       const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
 
       const startYearSelect = d3.select("#startYear");
@@ -83,22 +88,27 @@
         const margin = { top: 20, right: 30, bottom: 50, left: 50 };
         const innerWidth = width - margin.left - margin.right;
         const innerHeight = height - margin.top - margin.bottom;
-        
+
+        // Filter data based on selected year range
         const filteredData = data.filter(d => {
           const year = d.Date.getFullYear();
           return year >= startYear && year <= endYear;
         });
 
+        // Create scales for x and y axes
         const xScale = d3.time.scale().domain(d3.extent(filteredData, d => d.Date)).range([0, innerWidth]);
         const yScale = d3.scale.linear().domain([d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])]).range([innerHeight, 0]);
 
+        // Define axes
         const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
         const yAxis = d3.svg.axis().scale(yScale).orient("left");
 
+        // Create the SVG container
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
         g.append("g").attr("class", "x axis").attr("transform", `translate(0,${innerHeight})`).call(xAxis);
         g.append("g").attr("class", "y axis").call(yAxis);
 
+        // Create the line path for the selected data type
         const line = d3.svg.line()
           .x(d => xScale(d.Date))
           .y(d => yScale(d[dataType]));
@@ -106,10 +116,11 @@
         g.append("path").datum(filteredData).attr("class", "line").attr("d", line);
       }
 
-      // Initial chart rendering
+      // Initial chart rendering for both charts (Stock Price and Volume)
       updateChart('chart1', data, allYears[0], allYears[allYears.length - 1], 'Close');
       updateChart('chart2', data, allYears[0], allYears[allYears.length - 1], 'Volume');
 
+      // Event listeners for the dropdown changes
       d3.selectAll("#startYear, #endYear, #dataType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
