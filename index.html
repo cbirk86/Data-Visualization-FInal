@@ -57,6 +57,12 @@
       <option value="Low">Low</option>
       <option value="Volume">Volume</option>
     </select>
+
+    <label for="scaleType">Select Scale:</label>
+    <select id="scaleType">
+      <option value="log">Logarithmic</option>
+      <option value="linear">Linear</option>
+    </select>
   </div>
 
   <svg id="chart" width="1600" height="700"></svg>
@@ -92,24 +98,26 @@
 
       // Initial chart rendering with "Close"
       const dataTypeSelect = d3.select("#dataType");
-      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close");
+      const scaleTypeSelect = d3.select("#scaleType");
+      updateChart(data, allYears[0], allYears[allYears.length - 1], "Close", "log");
 
       // Update chart on dropdown change
-      d3.selectAll("#startYear, #endYear, #dataType").on("change", function() {
+      d3.selectAll("#startYear, #endYear, #dataType, #scaleType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
         const dataType = dataTypeSelect.property("value");
+        const scaleType = scaleTypeSelect.property("value");
 
         if (startYear > endYear) {
           alert("Start year must be less than or equal to end year.");
           return;
         }
 
-        updateChart(data, startYear, endYear, dataType);
+        updateChart(data, startYear, endYear, dataType, scaleType);
       });
     });
 
-    function updateChart(data, startYear, endYear, dataType) {
+    function updateChart(data, startYear, endYear, dataType, scaleType) {
       const svg = d3.select("#chart");
       svg.selectAll("*").remove();
 
@@ -140,9 +148,10 @@
       let yScale;
       let yAxis;
 
-      if (dataType === "Volume") {
+      // Set scale type (logarithmic or linear)
+      if (scaleType === "linear") {
         yScale = d3.scale.linear()
-          .domain([0, d3.max(filteredData, d => d.Volume)])
+          .domain([0, d3.max(filteredData, d => d[dataType])])
           .range([innerHeight, 0])
           .nice();
         yAxis = d3.svg.axis()
