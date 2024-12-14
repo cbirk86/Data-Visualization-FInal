@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Stock Chart with Volume Overlay</title>
+  <title>Interactive Stock Chart with Smoothed Volume Overlay</title>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <style>
     body {
@@ -42,7 +42,7 @@
   </style>
 </head>
 <body>
-  <h1>Interactive Stock Chart with Volume Overlay</h1>
+  <h1>Interactive Stock Chart with Smoothed Volume Overlay</h1>
 
   <div id="controls">
     <label for="startYear">Start Year:</label>
@@ -171,10 +171,15 @@
         .x(d => xScale(d.Date))
         .y(d => yScale(d.Close));
 
+      // Apply cubic interpolation (smoothing) to the stock price line
+      const smoothedPriceData = d3.svg.line()
+        .x(d => xScale(d.Date))
+        .y(d => yScale(d.Close));
+
       g.append("path")
         .datum(filteredData)
         .attr("class", "line")
-        .attr("d", line);
+        .attr("d", smoothedPriceData);
 
       // Volume line chart (overlay)
       const volumeMax = d3.max(filteredData, d => d.Volume);
@@ -186,10 +191,15 @@
         .x(d => xScale(d.Date))
         .y(d => volumeScale(d.Volume));
 
+      // Apply cubic interpolation (smoothing) to the volume line
+      const smoothedVolumeData = d3.svg.line()
+        .x(d => xScale(d.Date))
+        .y(d => volumeScale(d.Volume));
+
       g.append("path")
         .datum(filteredData)
         .attr("class", "volume-line")
-        .attr("d", volumeLine);
+        .attr("d", smoothedVolumeData);
 
       // Volume y-axis (right side)
       const volumeAxis = d3.svg.axis()
