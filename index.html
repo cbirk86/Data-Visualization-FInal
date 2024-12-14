@@ -91,7 +91,6 @@
 
       const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
 
-      // Populate dropdowns
       const startYearSelect = d3.select("#startYear");
       const endYearSelect = d3.select("#endYear");
 
@@ -103,11 +102,9 @@
       startYearSelect.property("value", allYears[0]);
       endYearSelect.property("value", allYears[allYears.length - 1]);
 
-      // Initial chart rendering with "Close"
       const dataTypeSelect = d3.select("#dataType");
       updateChart(data, allYears[0], allYears[allYears.length - 1], "Close", "linear");
 
-      // Update chart on dropdown change
       d3.selectAll("#startYear, #endYear, #dataType, #scaleType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
@@ -166,7 +163,6 @@
           .ticks(6)
           .tickFormat(function(d) {
             if (dataType === "Volume") {
-              // Abbreviate the volume numbers (K for thousands, M for millions, B for billions)
               return d >= 1e9 ? d3.format(".1s")(d).replace('G', 'B') : 
                      d >= 1e6 ? d3.format(".1s")(d).replace('M', 'M') : 
                      d >= 1e3 ? d3.format(".1s")(d).replace('K', 'K') : 
@@ -181,7 +177,7 @@
           .range([innerHeight, 0])
           .nice();
 
-        const logTicks = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.1, 0.04]; // Custom intervals as per your request
+        const logTicks = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.1, 0.04];
 
         yAxis = d3.svg.axis()
           .scale(yScale)
