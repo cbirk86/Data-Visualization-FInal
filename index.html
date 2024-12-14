@@ -133,22 +133,22 @@
           .nice();
       } else {
         yScale = d3.scale.linear()
-          .domain([d3.min(filteredData, d => d.Close), d3.max(filteredData, d => d.Close)])
+          .domain([0, d3.max(filteredData, d => d.Close)]) // Ensure 0 is included in linear scale
           .range([innerHeight, 0])
           .nice();
       }
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
-      // Define y-axis tick values for log scale
+      // Define y-axis tick values for log scale (0 can't be used in log scale)
       const yTickValues = scaleType === "log" ? 
         [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 5000, 10000] : // More labels for log scale
-        [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]; // Labels for linear scale
+        d3.range(0, d3.max(filteredData, d => d.Close), 10); // Labels for linear scale (0 and increment by 10)
 
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
-        .tickValues(yTickValues)  // Use predefined tick values for log scale
+        .tickValues(yTickValues)  // Use predefined tick values
         .tickFormat(d3.format(",.0f"))
         .tickPadding(10);
 
