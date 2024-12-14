@@ -10,17 +10,6 @@
         padding: 0;
       }
 
-      .axis path,
-      .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-      }
-
-      svg {
-        background-color: lightgray;
-      }
-
       .candlestick {
         stroke-width: 1px;
       }
@@ -33,23 +22,78 @@
         fill: #ff5733; /* Bearish (close < open) */
       }
 
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      svg {
+        background-color: lightgray;
+      }
+
       /* Axis label styling */
       .axis-label {
         font-size: 14px;
-        fill: white;
+        fill: black;  /* Change label color to black */
+      }
+
+      /* Dropdown styling */
+      select {
+        margin: 10px;
+        padding: 5px;
+        font-size: 16px;
       }
     </style>
   </head>
 
   <body>
-    <h1>Nvidia Stock Price Candlestick Chart (Last 5 Years)</h1>
-    <p> Test 18</p>
-    <svg id="chart" width="800" height="400"></svg>
+    <h1>Nvidia Stock Price Candlestick Chart</h1>
+    <p>Test 19</p>
+    
+    <!-- Dropdown to select the year -->
+    <label for="yearSelect">Select Year: </label>
+    <select id="yearSelect">
+      <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
+      <option value="2021">2021</option>
+      <option value="2020">2020</option>
+      <option value="2019">2019</option>
+      <option value="2018">2018</option>
+      <option value="2017">2017</option>
+      <option value="2016">2016</option>
+      <option value="2015">2015</option>
+      <option value="2014">2014</option>
+      <option value="2013">2013</option>
+      <option value="2012">2012</option>
+      <option value="2011">2011</option>
+      <option value="2010">2010</option>
+      <option value="2009">2009</option>
+      <option value="2008">2008</option>
+      <option value="2007">2007</option>
+      <option value="2006">2006</option>
+      <option value="2005">2005</option>
+      <option value="2004">2004</option>
+      <option value="2003">2003</option>
+      <option value="2002">2002</option>
+      <option value="2001">2001</option>
+      <option value="2000">2000</option>
+      <option value="1999">1999</option>
+    </select>
+
+    <!-- First Chart (Last 5 Years) -->
+    <svg id="chart1" width="800" height="400"></svg>
+
+    <!-- Second Chart (Yearly Chart) -->
+    <svg id="chart2" width="800" height="400" style="margin-top: 50px;"></svg>
 
     <script type="text/javascript">
       var dataset;
+
       d3.csv("NVDA.csv", function(data) {
-        data.forEach(function (d) {
+        data.forEach(function(d) {
           d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
           d.Open = +d.Open;
           d.Close = +d.Close;
@@ -57,25 +101,29 @@
           d.Low = +d.Low;
         });
 
-        // Get the current date and calculate the cutoff date (5 years ago)
-        var currentDate = new Date();
-        var cutoffDate = new Date();
-        cutoffDate.setFullYear(currentDate.getFullYear() - 5);  // Change here: 5 years ago
-
-        // Filter the dataset to only include the last 5 years
+        // Filter out invalid data
         data = data.filter(function(d) {
-          return d.Date >= cutoffDate;
+          return d.Date && d.Open && d.Close && d.High && d.Low && !isNaN(d.Open) && !isNaN(d.Close) && !isNaN(d.High) && !isNaN(d.Low);
         });
 
-        console.log(data); // Verify that only the last 5 years of data are included
-        createCandlestickChart(data);
+        dataset = data; // Store the dataset globally
+
+        // Call the charts for the last 5 years
+        createCandlestickChart5Years(dataset);
+        createCandlestickChartYear(dataset, "2024"); // Initially display 2024 data
+
+        // Handle year selection
+        d3.select("#yearSelect").on("change", function() {
+          var selectedYear = this.value;
+          createCandlestickChartYear(dataset, selectedYear);
+        });
       });
 
-      function createCandlestickChart(dataset) {
-        var svg = d3.select("#chart");
+      function createCandlestickChart5Years(dataset) {
+        var svg = d3.select("#chart1");
         var width = +svg.attr("width");
         var height = +svg.attr("height");
-        var margin = { top: 20, right: 30, bottom: 50, left: 50 }; // Added more space for labels
+        var margin = { top: 20, right: 30, bottom: 50, left: 50 };
         var innerWidth = width - margin.left - margin.right;
         var innerHeight = height - margin.top - margin.bottom;
 
@@ -83,15 +131,14 @@
           .domain(d3.extent(dataset, function(d) { return d.Date; }))
           .range([0, innerWidth]);
 
-        // Use a logarithmic scale for the y-axis
         var yScale = d3.scale.log()
           .domain([d3.min(dataset, function(d) { return d.Low; }), d3.max(dataset, function(d) { return d.High; })])
           .range([innerHeight, 0])
-          .base(10)  // Set the base for the log scale (default is 10)
-          .clamp(true); // Avoid values below the minimum range
+          .base(10)
+          .clamp(true);
 
         var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-        var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(6, ",.0f");  // Optional: Add nice ticks for log scale
+        var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
         var g = svg.append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -105,42 +152,86 @@
           .attr("transform", "translate(0," + innerHeight + ")")
           .call(xAxis);
 
-        // Add x-axis label
-        svg.append("text")
-          .attr("class", "axis-label")
-          .attr("x", width / 2)
-          .attr("y", height - 10) // Position just below the chart
-          .attr("text-anchor", "middle")
-          .text("Date");
-
-        // Add y-axis label
-        svg.append("text")
-          .attr("class", "axis-label")
-          .attr("transform", "rotate(-90)")
-          .attr("x", -height / 2)
-          .attr("y", 20)
-          .attr("text-anchor", "middle")
-          .text("Price (Log Scale)");
-
-        var candlestickWidth = Math.floor(innerWidth / dataset.length);  // Manually calculate width for candlesticks
-
-        // Draw the candlestick bars
+        // Candlesticks
         g.selectAll(".candlestick")
           .data(dataset)
           .enter().append("rect")
           .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
-          .attr("x", function(d, i) { return xScale(d.Date) - candlestickWidth / 2; })  // Adjust the placement of candlesticks
+          .attr("x", function(d) { return xScale(d.Date); })
           .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
-          .attr("width", candlestickWidth)
+          .attr("width", Math.floor(innerWidth / dataset.length))
           .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
 
-        // Draw the high-low line
+        // High-Low lines
         g.selectAll(".highlow")
           .data(dataset)
           .enter().append("line")
           .attr("class", "highlow")
-          .attr("x1", function(d, i) { return xScale(d.Date); })
-          .attr("x2", function(d, i) { return xScale(d.Date); })
+          .attr("x1", function(d) { return xScale(d.Date); })
+          .attr("x2", function(d) { return xScale(d.Date); })
+          .attr("y1", function(d) { return yScale(d.High); })
+          .attr("y2", function(d) { return yScale(d.Low); })
+          .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
+          .attr("stroke-width", 1);
+      }
+
+      function createCandlestickChartYear(dataset, year) {
+        var svg = d3.select("#chart2");
+        svg.selectAll("*").remove(); // Clear the chart before updating it
+
+        var width = +svg.attr("width");
+        var height = +svg.attr("height");
+        var margin = { top: 20, right: 30, bottom: 50, left: 50 };
+        var innerWidth = width - margin.left - margin.right;
+        var innerHeight = height - margin.top - margin.bottom;
+
+        // Filter data for the selected year
+        var yearData = dataset.filter(function(d) {
+          return d.Date.getFullYear() == year;
+        });
+
+        var xScale = d3.time.scale()
+          .domain(d3.extent(yearData, function(d) { return d.Date; }))
+          .range([0, innerWidth]);
+
+        var yScale = d3.scale.log()
+          .domain([d3.min(yearData, function(d) { return d.Low; }), d3.max(yearData, function(d) { return d.High; })])
+          .range([innerHeight, 0])
+          .base(10)
+          .clamp(true);
+
+        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+        var g = svg.append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        g.append("g")
+          .attr("class", "y axis")
+          .call(yAxis);
+
+        g.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + innerHeight + ")")
+          .call(xAxis);
+
+        // Candlesticks for the selected year
+        g.selectAll(".candlestick")
+          .data(yearData)
+          .enter().append("rect")
+          .attr("class", function(d) { return d.Close > d.Open ? "candlestick up" : "candlestick down"; })
+          .attr("x", function(d) { return xScale(d.Date); })
+          .attr("y", function(d) { return yScale(Math.max(d.Close, d.Open)); })
+          .attr("width", Math.floor(innerWidth / yearData.length))
+          .attr("height", function(d) { return Math.abs(yScale(d.Close) - yScale(d.Open)); });
+
+        // High-Low lines for the selected year
+        g.selectAll(".highlow")
+          .data(yearData)
+          .enter().append("line")
+          .attr("class", "highlow")
+          .attr("x1", function(d) { return xScale(d.Date); })
+          .attr("x2", function(d) { return xScale(d.Date); })
           .attr("y1", function(d) { return yScale(d.High); })
           .attr("y2", function(d) { return yScale(d.Low); })
           .attr("stroke", function(d) { return d.Close > d.Open ? "#4bda00" : "#ff5733"; })
