@@ -40,7 +40,7 @@
     <select id="endYear"></select>
   </div>
 
-  <svg id="chart" width="2000" height="800"></svg> <!-- Increased size -->
+  <svg id="chart" width="1600" height="700"></svg> <!-- Slightly smaller size -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -116,15 +116,15 @@
         .nice();
 
       const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-      
-      // Manually specify tick values using logarithmic steps
-      const yTickValues = [1, 10, 100, 1000, 10000, 100000]; // Adjust this array for your dataset
+
+      // Manually specify more y-axis tick values
+      const yTickValues = [1, 5, 10, 50, 100, 500, 1000, 5000, 10000]; // More y-axis labels
       const yAxis = d3.svg.axis()
         .scale(yScale)
         .orient("left")
         .tickValues(yTickValues)  // Use predefined tick values
         .tickFormat(d3.format(",.0f"))
-        .tickPadding(15);  // Increase the padding between ticks
+        .tickPadding(10);  // Increased padding between ticks
 
       const g = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
