@@ -165,7 +165,12 @@
           .orient("left")
           .ticks(6)
           .tickFormat(function(d) {
-            return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d); // Show decimals for <1 and integers for >=1
+            if (dataType === "Volume") {
+              // Abbreviate the volume numbers
+              return d >= 1e9 ? d3.format(".1s")(d) : d >= 1e6 ? d3.format(".1s")(d) : d >= 1e3 ? d3.format(".1s")(d) : d3.format(".0f")(d);
+            } else {
+              return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d);
+            }
           });
       } else {
         yScale = d3.scale.log()
@@ -180,7 +185,7 @@
           .orient("left")
           .tickValues(logTicks)
           .tickFormat(function(d) {
-            return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d); // Show decimals for <1 and integers for >=1
+            return d < 1 ? d3.format(".2f")(d) : d3.format(".0f")(d);
           });
       }
 
@@ -227,10 +232,22 @@
         .attr("d", line);
     }
 
-    // Function to generate custom log ticks with specific intervals
     function generateLogTicks(minValue, maxValue) {
-      const ticks = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.1, 0.04]; // Fixed intervals
-      return ticks.filter(tick => tick >= minValue && tick <= maxValue); // Filter the ticks within the range
+      const ticks = [];
+      const start = Math.floor(Math.log(minValue) / Math.LN10);
+      const end = Math.ceil(Math.log(maxValue) / Math.LN10);
+
+      for (let i = start; i <= end; i++) {
+        const base = Math.pow(10, i);
+        for (let j = 1; j <= 9; j++) {
+          const value = base * j;
+          if (value >= minValue && value <= maxValue) {
+            ticks.push(value);
+          }
+        }
+      }
+
+      return ticks;
     }
   </script>
 </body>
