@@ -25,7 +25,7 @@
 <body>
 
   <h1>Stock Candlestick Charts</h1>
- <p> Test 21</p>
+  <p> Test 22 </p>
   <!-- Dropdown for year selection -->
   <select id="yearSelect">
     <option value="2024">2024</option>
@@ -34,8 +34,8 @@
     <!-- Add more options as needed -->
   </select>
 
-  <svg id="chart1" width="800" height="400"></svg> <!-- First Chart -->
-  <svg id="chart2" width="800" height="400"></svg> <!-- Second Chart -->
+  <svg id="chart1" width="1100" height="400"></svg> <!-- First Chart with increased width -->
+  <svg id="chart2" width="1100" height="400"></svg> <!-- Second Chart with increased width -->
 
   <script>
     d3.csv("NVDA.csv", function(data) {
@@ -78,7 +78,7 @@
       var width = +svg.attr("width");
       var height = +svg.attr("height");
       var margin = { top: 20, right: 30, bottom: 50, left: 50 };
-      var innerWidth = width - margin.left - margin.right;
+      var innerWidth = width - margin.left - margin.right + 200; // Increase width by 200 pixels
       var innerHeight = height - margin.top - margin.bottom;
 
       var xScale = d3.time.scale()
@@ -151,7 +151,7 @@
       var width = +svg.attr("width");
       var height = +svg.attr("height");
       var margin = { top: 20, right: 30, bottom: 50, left: 50 };
-      var innerWidth = width - margin.left - margin.right;
+      var innerWidth = width - margin.left - margin.right + 200; // Increase width by 200 pixels
       var innerHeight = height - margin.top - margin.bottom;
 
       // Add margin-top for the second chart dynamically
