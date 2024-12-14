@@ -9,15 +9,16 @@
     body {
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
+      padding: 20px;
     }
     .chart-container {
       display: flex;
       justify-content: space-between;
-      margin: 20px;
+      margin: 20px 0;
     }
     svg {
       width: 48%;
-      height: 400px;
+      height: 500px;
       background-color: #e0e0e0;
     }
     select {
@@ -56,7 +57,6 @@
   </div>
 
   <script>
-    // Load the data from CSV
     d3.csv("NVDA.csv", function(data) {
       data.forEach(function(d) {
         d.Date = d3.time.format("%Y-%m-%d").parse(d.Date);
@@ -66,7 +66,6 @@
         d.High = +d.High;
       });
 
-      // Get all unique years from the data
       const allYears = Array.from(new Set(data.map(d => d.Date.getFullYear()))).sort();
 
       const startYearSelect = d3.select("#startYear");
@@ -78,37 +77,35 @@
       startYearSelect.property("value", allYears[0]);
       endYearSelect.property("value", allYears[allYears.length - 1]);
 
-      // Update chart function for both charts
+      // Function to update the chart
       function updateChart(chartId, data, startYear, endYear, dataType) {
         const svg = d3.select(`#${chartId}-svg`);
-        svg.selectAll("*").remove();
-        
+        svg.selectAll("*").remove(); // Clear previous chart
+
         const width = +svg.attr("width");
         const height = +svg.attr("height");
         const margin = { top: 20, right: 30, bottom: 50, left: 50 };
         const innerWidth = width - margin.left - margin.right;
         const innerHeight = height - margin.top - margin.bottom;
 
-        // Filter data based on selected year range
+        // Filter data by selected years
         const filteredData = data.filter(d => {
           const year = d.Date.getFullYear();
           return year >= startYear && year <= endYear;
         });
 
-        // Create scales for x and y axes
+        // Set scales for X and Y axes
         const xScale = d3.time.scale().domain(d3.extent(filteredData, d => d.Date)).range([0, innerWidth]);
         const yScale = d3.scale.linear().domain([d3.min(filteredData, d => d[dataType]), d3.max(filteredData, d => d[dataType])]).range([innerHeight, 0]);
 
-        // Define axes
         const xAxis = d3.svg.axis().scale(xScale).orient("bottom");
         const yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-        // Create the SVG container
+        // Add groups for the axes and chart line
         const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
         g.append("g").attr("class", "x axis").attr("transform", `translate(0,${innerHeight})`).call(xAxis);
         g.append("g").attr("class", "y axis").call(yAxis);
 
-        // Create the line path for the selected data type
         const line = d3.svg.line()
           .x(d => xScale(d.Date))
           .y(d => yScale(d[dataType]));
@@ -116,11 +113,11 @@
         g.append("path").datum(filteredData).attr("class", "line").attr("d", line);
       }
 
-      // Initial chart rendering for both charts (Stock Price and Volume)
+      // Initial chart rendering
       updateChart('chart1', data, allYears[0], allYears[allYears.length - 1], 'Close');
       updateChart('chart2', data, allYears[0], allYears[allYears.length - 1], 'Volume');
 
-      // Event listeners for the dropdown changes
+      // Update charts when selection changes
       d3.selectAll("#startYear, #endYear, #dataType").on("change", function() {
         const startYear = +startYearSelect.property("value");
         const endYear = +endYearSelect.property("value");
